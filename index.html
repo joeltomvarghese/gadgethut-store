@@ -3,611 +3,778 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GadgetHut - Your Tech Universe</title>
+    <title>GadgetHut - Certified Refurbished</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icons from Lucide -->
-    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Custom scrollbar for webkit browsers */
-        ::-webkit-scrollbar {
-            width: 12px;
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; /* Light mode track */
+        /* Custom styles for dark mode and cream/black theme */
+        .dark .bg-dark-mode {
+            background-color: #121212;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
+        .dark .bg-dark-surface {
+            background-color: #1a1a1a;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a1a1a1;
+        .dark .text-dark-primary {
+            color: #E0E0E0;
+        }
+        .dark .text-dark-secondary {
+            color: #A0A0A0;
+        }
+        .dark .border-dark-border {
+            border-color: #333;
+        }
+
+        /* Cream Accents */
+        .cream-text {
+            color: #F5F5DC;
+        }
+        .cream-bg {
+            background-color: #F5F5DC;
+            color: #121212;
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(245, 245, 220, 0.5);
+        }
+        .cream-bg:hover {
+            background-color: #FFFDD0;
+            box-shadow: 0 0 8px rgba(245, 245, 220, 0.7);
+        }
+        .cream-border {
+            border: 1px solid #F5F5DC;
         }
         
-        /* Dark mode scrollbar */
-        html.dark ::-webkit-scrollbar-track {
-            background: #2d2d2d; /* Dark mode track */
+        /* Light mode text colors */
+        .light .text-light-mode-black {
+             color: #121212;
         }
-        html.dark ::-webkit-scrollbar-thumb {
-            background: #555;
-        }
-        html.dark ::-webkit-scrollbar-thumb:hover {
-            background: #777;
-        }
-
-        /* Glassmorphism effect */
-        .glass-header {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(230, 230, 230, 0.5);
+        
+        /* Dark mode text colors */
+        .dark .text-dark-mode-cream {
+             color: #F5F5DC;
         }
 
-        html.dark .glass-header {
-            background: rgba(17, 17, 17, 0.7); /* Even darker for dark mode */
-            border-bottom: 1px solid rgba(50, 50, 50, 0.5);
-        }
-
-        /* Smooth scroll for anchor links */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Product card hover effect */
+        /* Product Card Animation */
         .product-card {
-            transition: all 0.3s ease-in-out;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
         }
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        .product-card.is-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
-        html.dark .product-card:hover {
-            box-shadow: 0 10px 20px rgba(84, 255, 0, 0.1); /* Neon glow */
+
+        /* Modal Animations */
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .modal.is-open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal.is-open .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Product Detail Modal */
+        #product-detail-modal-content {
+             transform: scale(0.9);
+             opacity: 0;
+             transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        #product-detail-modal.is-open #product-detail-modal-content {
+             transform: scale(1);
+             opacity: 1;
+        }
+
+        
+        /* FAQ Accordion */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-button.open .accordion-icon {
+            transform: rotate(180deg);
         }
     </style>
 </head>
-<body class="bg-stone-100 dark:bg-black text-stone-900 dark:text-stone-100 min-h-screen font-sans antialiased">
+<body class="bg-stone-100 dark:bg-dark-mode text-dark-primary transition-colors duration-300">
 
-    <!-- 
-        HEADER SECTION
-        Includes: Logo, Nav, Search, Theme Toggle, Cart
-    -->
-    <header class="glass-header sticky top-0 z-50 w-full shadow-sm">
-        <nav class="container mx-auto px-4 py-3 flex items-center justify-between">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-dark-surface/80 backdrop-blur-md shadow-sm">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <!-- Logo -->
-            <a href="#" class="text-3xl font-extrabold flex items-center shrink-0">
-                <span class="text-black dark:text-white">Gadget</span>
-                <span class="text-green-500">Hut</span>
-                <i data-lucide="zap" class="w-7 h-7 ml-1 text-green-500"></i>
+            <a href="#" class="text-3xl font-extrabold text-light-mode-black dark:text-dark-mode-cream">
+                GadgetHut
             </a>
-
-            <!-- Search Bar (Desktop) -->
-            <div class="hidden md:flex relative w-full max-w-lg mx-4">
-                <input type="text" placeholder="Search for products..." class="w-full pl-10 pr-4 py-2 rounded-full border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-green-500">
-                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
+            
+            <!-- Live Search Bar -->
+            <div class="flex-1 max-w-xl mx-4">
+                <div class="flex rounded-full bg-stone-100 dark:bg-dark-mode cream-border overflow-hidden">
+                    <input type="text" id="search-bar" placeholder="Start typing to search products..." class="w-full px-4 py-2 bg-transparent text-dark-primary dark:text-white focus:outline-none">
+                    <button class="px-4 text-gray-600 dark:text-gray-300">
+                        <span data-lucide="search" class="w-5 h-5"></span>
+                    </button>
+                </div>
             </div>
-
+            
             <!-- Header Icons -->
-            <div class="flex items-center space-x-3 md:space-x-5">
-                <button id="theme-toggle" class="p-2 rounded-full text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-800">
-                    <i data-lucide="sun" class="w-6 h-6 block dark:hidden"></i>
-                    <i data-lucide="moon" class="w-6 h-6 hidden dark:block"></i>
+            <div class="flex items-center space-x-6">
+                <button id="dark-mode-toggle" class="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white">
+                    <span data-lucide="moon" class="w-6 h-6 hidden dark:inline"></span>
+                    <span data-lucide="sun" class="w-6 h-6 inline dark:hidden"></span>
                 </button>
-                <a href="#" class="hidden md:flex items-center space-x-1 text-stone-600 dark:text-stone-300 hover:text-green-500 dark:hover:text-green-400">
-                    <i data-lucide="user" class="w-6 h-6"></i>
-                    <span class="text-sm font-medium">Account</span>
+                <a href="#" class="flex items-center text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white">
+                    <span data-lucide="user" class="w-6 h-6"></span>
+                    <span class="ml-2 hidden md:inline">Account</span>
                 </a>
-                <button id="open-cart-btn" class="relative p-2 rounded-full text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-800">
-                    <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-                    <span id="cart-count" class="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                <button id="cart-button" class="relative flex items-center text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white">
+                    <span data-lucide="shopping-cart" class="w-6 h-6"></span>
+                    <span id="cart-count" class="absolute -top-2 -right-3 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
                 </button>
             </div>
         </nav>
-
-        <!-- Secondary Nav (Categories, Deals) -->
-        <div class="bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
-            <div class="container mx-auto px-4 flex items-center justify-between text-sm font-medium text-stone-700 dark:text-stone-300">
-                <div class="flex items-center space-x-6 overflow-x-auto py-2">
-                    <a href="#" class="hover:text-green-500 shrink-0">All Categories</a>
-                    <a href="#product-grid" class="hover:text-green-500 shrink-0">Today's Deals</a>
-                    <a href="#" class="hover:text-green-500 shrink-0">New Releases</a>
-                    <a href="#" class="hover:text-green-500 shrink-0">Customer Service</a>
-                    <a href="#" class="hidden sm:block hover:text-green-500 shrink-0">Gift Cards</a>
-                </div>
-                <!-- Search Bar (Mobile) -->
-                <div class="md:hidden flex-1 p-2">
-                    <div class="relative w-full">
-                        <input type="text" placeholder="Search..." class="w-full pl-10 pr-4 py-2 rounded-full border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-green-500">
-                        <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
-                    </div>
-                </div>
+        
+        <!-- Secondary Nav -->
+        <div class="bg-gray-800 dark:bg-black text-white">
+            <div class="container mx-auto px-4 py-2 flex items-center space-x-6 text-sm font-medium">
+                <a href="#" class="hover:underline">All Categories</a>
+                <a href="#" class="hover:underline">Today's Deals</a>
+                <a href="#" class="hover:underline">New Releases</a>
+                <a href="#help-modal" id="customer-service-link" class="hover:underline">Customer Service</a>
+                <a href="#" class="hover:underline">Gift Cards</a>
             </div>
         </div>
     </header>
 
-    <!-- 
-        MAIN CONTENT
-    -->
-    <main class="container mx-auto p-4">
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
         <!-- Hero Section -->
-        <section class="bg-gradient-to-r from-stone-900 to-black text-white rounded-xl shadow-lg p-8 md:p-12 mb-10 flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl md:text-5xl font-extrabold mb-3">Tech for the Future</h1>
-                <p class="text-lg md:text-xl text-stone-300 mb-6">Explore the latest in high-end gadgets and electronics.</p>
-                <a href="#product-grid" class="inline-block bg-green-500 text-black dark:text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-green-600 transition duration-300 transform hover:scale-105">
+        <section class="bg-white dark:bg-dark-surface rounded-lg shadow-lg p-8 md:p-12 mb-12 flex items-center" style="background: linear-gradient(135deg, #222 0%, #000 100%);">
+            <div class="max-w-md">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Certified Refurbished.</h1>
+                <p class="text-lg text-gray-300 mb-6">Like-new quality you can trust. Explore top-tier gadgets, fully tested and backed by our warranty.</p>
+                <button class="px-8 py-3 rounded-full cream-bg transition-all duration-300 transform hover:scale-105">
                     Shop Now
-                </a>
-            </div>
-            <div class="hidden md:block">
-                <i data-lucide="hard-drive" class="w-48 h-48 text-green-500 opacity-20"></i>
+                </button>
             </div>
         </section>
 
-        <!-- Product Grid -->
-        <section id="product-grid">
-            <h2 class="text-3xl font-bold mb-6 text-black dark:text-white">Featured Products</h2>
-            <div id="product-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Product cards will be inserted here by JavaScript -->
-                <!-- Loading Skeleton -->
-                <div class="product-card bg-white dark:bg-stone-900 rounded-lg shadow-md overflow-hidden animate-pulse">
-                    <div class="w-full h-48 bg-stone-300 dark:bg-stone-700"></div>
-                    <div class="p-4">
-                        <div class="h-6 bg-stone-300 dark:bg-stone-700 rounded w-3/4 mb-2"></div>
-                        <div class="h-4 bg-stone-300 dark:bg-stone-700 rounded w-1/4 mb-4"></div>
-                        <div class="h-10 bg-green-400 dark:bg-green-600 rounded-full"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Error Message Container -->
-            <div id="error-container" class="hidden text-center text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 rounded-lg p-4">
-                <h3 class="font-bold text-lg">Oops! Something went wrong.</h3>
-                <p id="error-message">Could not load products. Please try again later.</p>
+        <!-- Featured Products -->
+        <section>
+            <h2 class="text-3xl font-bold text-light-mode-black dark:text-dark-mode-cream mb-6">Featured Products</h2>
+            <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Products will be loaded here by JavaScript -->
             </div>
         </section>
     </main>
 
-    <!-- 
-        FOOTER SECTION
-    -->
-    <footer class="bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 mt-16">
-        <div class="container mx-auto px-4 py-10">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-                <!-- Column 1 -->
-                <div>
-                    <h5 class="font-bold text-lg mb-3 text-black dark:text-white">Get to Know Us</h5>
-                    <ul class="space-y-2 text-stone-600 dark:text-stone-400 text-sm">
-                        <li><a href="#" class="hover:text-green-500">About GadgetHut</a></li>
-                        <li><a href="#" class="hover:text-green-500">Careers</a></li>
-                        <li><a href="#" class="hover:text-green-500">Press Releases</a></li>
-                        <li><a href="#" class="hover:text-green-500">Our Blog</a></li>
-                    </ul>
-                </div>
-                <!-- Column 2 -->
-                <div>
-                    <h5 class="font-bold text-lg mb-3 text-black dark:text-white">Let Us Help You</h5>
-                    <ul class="space-y-2 text-stone-600 dark:text-stone-400 text-sm">
-                        <li><a href="#" class="hover:text-green-500">Your Account</a></li>
-                        <li><a href="#" class="hover:text-green-500">Your Orders</a></li>
-                        <li><a href="#" class="hover:text-green-500">Shipping Rates</a></li>
-                        <li><a href="#" class="hover:text-green-500">Returns & Replacements</a></li>
-                        <li><a href="#" class="hover:text-green-500">Help</a></li>
-                    </ul>
-                </div>
-                <!-- Column 3 -->
-                <div>
-                    <h5 class="font-bold text-lg mb-3 text-black dark:text-white">Payment Products</h5>
-                    <ul class="space-y-2 text-stone-600 dark:text-stone-400 text-sm">
-                        <li><a href="#" class="hover:text-green-500">Reload Your Balance</a></li>
-                        <li><a href="#" class="hover:text-green-500">Shop with Points</a></li>
-                        <li><a href="#" class="hover:text-green-500">Gift Cards</a></li>
-                    </ul>
-                </div>
-                <!-- Column 4 -->
-                <div>
-                    <h5 class="font-bold text-lg mb-3 text-black dark:text-white">Connect With Us</h5>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-stone-500 hover:text-green-500"><i data-lucide="facebook" class="w-6 h-6"></i></a>
-                        <a href="#" class="text-stone-500 hover:text-green-500"><i data-lucide="twitter" class="w-6 h-6"></i></a>
-                        <a href="#" class="text-stone-500 hover:text-green-500"><i data-lucide="instagram" class="w-6 h-6"></i></a>
-                    </div>
-                </div>
+    <!-- Footer -->
+    <footer class="bg-gray-800 dark:bg-black text-gray-300 mt-12 py-12">
+        <div class="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Get to Know Us</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white hover:underline">About GadgetHut</a></li>
+                    <li><a href="admin/" class="hover:text-white hover:underline">Admin Panel</a></li>
+                    <li><a href="#" class="hover:text-white hover:underline">Blog</a></li>
+                </ul>
             </div>
-            
-            <!-- Bottom Footer -->
-            <div class="border-t border-stone-200 dark:border-stone-800 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between text-sm text-stone-500">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <a href="#" class="text-xl font-extrabold flex items-center shrink-0 mr-4">
-                        <span class="text-black dark:text-white">Gadget</span>
-                        <span class="text-green-500">Hut</span>
-                    </a>
-                    <p>&copy; 2025, GadgetHut.com, Inc. or its affiliates</p>
-                </div>
-                <div class="flex space-x-4">
-                    <a href="#" class="hover:text-green-500">Conditions of Use</a>
-                    <a href="#" class="hover:text-green-500">Privacy Notice</a>
-                </div>
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Let Us Help You</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white hover:underline">Your Account</a></li>
+                    <li><a href="#" class="hover:text-white hover:underline">Your Orders</a></li>
+                    <li><a href="#" class="hover:text-white hover:underline">Shipping Rates</a></li>
+                    <li><a href="#help-modal" id="footer-help-link" class="hover:text-white hover:underline">Help</a></li>
+                </ul>
             </div>
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Payment Products</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white hover:underline">Reload Your Balance</a></li>
+                    <li><a href="#" class="hover:text-white hover:underline">GadgetHut Currency Converter</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Connect With Us</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white hover:underline">Facebook</a></li>
+                    <li><a href="#" class="hover:text-white hover:underline">Twitter</a></li>
+                    <li><a href="#" class="hover:text-white hover:underline">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container mx-auto px-4 text-center mt-8 pt-8 border-t border-gray-700">
+            <p class="text-sm">&copy; 2025, GadgetHut.com, Inc. or its affiliates</p>
         </div>
     </footer>
 
-
-    <!-- 
-        SHOPPING CART SIDEBAR
-    -->
-    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full md:w-96 bg-white dark:bg-stone-900 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col">
-        <!-- Cart Header -->
-        <div class="flex items-center justify-between p-4 border-b border-stone-200 dark:border-stone-800">
-            <h2 class="text-2xl font-bold text-black dark:text-white">Your Cart</h2>
-            <button id="close-cart-btn" class="p-2 rounded-full text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-800">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
-        </div>
-
-        <!-- Cart Items -->
-        <div id="cart-items-container" class="flex-1 overflow-y-auto p-4 space-y-4">
-            <!-- Cart items will be inserted here -->
-            <p id="cart-empty-msg" class="text-stone-500 dark:text-stone-400 text-center mt-8">Your cart is empty.</p>
-        </div>
-
-        <!-- Cart Footer (Checkout) -->
-        <div class="p-4 border-t border-stone-200 dark:border-stone-800">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-lg font-medium text-stone-700 dark:text-stone-300">Subtotal</span>
-                <span id="cart-subtotal" class="text-2xl font-bold text-black dark:text-white">$0.00</span>
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-end">
+        <div class="bg-white dark:bg-dark-surface w-full max-w-md h-full flex flex-col">
+            <!-- Cart Header -->
+            <div class="flex justify-between items-center p-5 border-b dark:border-dark-border">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Shopping Cart</h2>
+                <button id="close-cart-btn" class="text-gray-600 dark:text-gray-300">
+                    <span data-lucide="x" class="w-7 h-7"></span>
+                </button>
             </div>
-            <button id="checkout-btn" class="w-full bg-green-500 text-black dark:text-white font-bold py-3 rounded-full text-lg hover:bg-green-600 transition duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                Proceed to Checkout
-            </button>
+            
+            <!-- Cart Items -->
+            <div id="cart-items-container" class="flex-1 p-5 overflow-y-auto">
+                <p id="empty-cart-msg" class="text-gray-500 dark:text-dark-secondary">Your cart is empty.</p>
+            </div>
+            
+            <!-- Cart Footer -->
+            <div class="p-5 border-t dark:border-dark-border space-y-4">
+                <div class="flex justify-between text-xl font-bold text-gray-900 dark:text-white">
+                    <span>Subtotal:</span>
+                    <span id="cart-subtotal">$0.00</span>
+                </div>
+                <button id="checkout-btn" class="w-full py-3 rounded-lg cream-bg text-lg font-bold transition-all duration-300 transform hover:scale-105">
+                    Proceed to Checkout
+                </button>
+            </div>
         </div>
     </div>
     
-    <!-- Cart Overlay -->
-    <div id="cart-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
-
-    <!-- 
-        MODAL / TOAST (for checkout message)
-    -->
-    <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
-        <div id="modal-content" class="bg-white dark:bg-stone-900 rounded-lg shadow-2xl max-w-sm w-full p-6 text-center transform scale-95 opacity-0 transition-all duration-300">
-            <div id="modal-icon" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900 mb-4">
-                <i data-lucide="check-circle" class="w-10 h-10 text-green-500"></i>
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-10 right-10 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg text-lg z-[60]">
+        Order placed successfully!
+    </div>
+    
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-end opacity-0 pointer-events-none">
+        <div id="help-modal-content" class="modal-content bg-white dark:bg-dark-surface w-full max-w-3xl rounded-t-lg shadow-lg flex flex-col max-h-[80vh]">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-5 border-b dark:border-dark-border">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Help & Customer Support</h2>
+                <button id="close-help-btn" class="text-gray-600 dark:text-gray-300">
+                    <span data-lucide="x" class="w-7 h-7"></span>
+                </button>
             </div>
-            <h3 id="modal-title" class="text-2xl font-bold mb-2 text-black dark:text-white">Success!</h3>
-            <p id="modal-message" class="text-stone-600 dark:text-stone-300 mb-6">Your order has been placed successfully.</p>
-            <button id="modal-close-btn" class="w-full bg-green-500 text-black dark:text-white font-bold py-2 px-4 rounded-full hover:bg-green-600 transition duration-300">
-                Great!
+            
+            <!-- Modal Body -->
+            <div class="flex-1 p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- FAQs -->
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h3>
+                    <div class="space-y-4">
+                        <!-- FAQ 1 -->
+                        <div class="border dark:border-dark-border rounded-lg">
+                            <button class="accordion-button flex justify-between items-center w-full p-4">
+                                <span class="font-medium text-gray-900 dark:text-white">What is your return policy?</span>
+                                <span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-gray-500 dark:text-dark-secondary transition-transform"></span>
+                            </button>
+                            <div class="accordion-content px-4 pb-4">
+                                <p class="text-gray-600 dark:text-dark-secondary">We offer a 30-day return policy on all our refurbished products. If you're not satisfied, send it back for a full refund.</p>
+                            </div>
+                        </div>
+                        <!-- FAQ 2 -->
+                        <div class="border dark:border-dark-border rounded-lg">
+                            <button class="accordion-button flex justify-between items-center w-full p-4">
+                                <span class="font-medium text-gray-900 dark:text-white">What does "Pristine" condition mean?</span>
+                                <span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-gray-500 dark:text-dark-secondary transition-transform"></span>
+                            </button>
+                            <div class="accordion-content px-4 pb-4">
+                                <p class="text-gray-600 dark:text-dark-secondary">"Pristine" means the device is in like-new condition with no visible scratches or marks. It has passed all our functional tests and has at least 90% battery health.</p>
+                            </div>
+                        </div>
+                        <!-- FAQ 3 -->
+                        <div class="border dark:border-dark-border rounded-lg">
+                            <button class="accordion-button flex justify-between items-center w-full p-4">
+                                <span class="font-medium text-gray-900 dark:text-white">Is there a warranty?</span>
+                                <span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-gray-500 dark:text-dark-secondary transition-transform"></span>
+                            </button>
+                            <div class="accordion-content px-4 pb-4">
+                                <p class="text-gray-600 dark:text-dark-secondary">Yes! All our refurbished products come with a 12-month warranty covering technical defects and faults.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Form -->
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Contact Us</h3>
+                    <form id="help-contact-form" class="space-y-4">
+                        <div>
+                            <label for="contact-name" class="block text-sm font-medium text-gray-700 dark:text-dark-secondary">Your Name</label>
+                            <input type="text" id="contact-name" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="contact-email" class="block text-sm font-medium text-gray-700 dark:text-dark-secondary">Your Email</label>
+                            <input type="email" id="contact-email" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="contact-message" class="block text-sm font-medium text-gray-700 dark:text-dark-secondary">Message</label>
+                            <textarea id="contact-message" rows="4" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-2 px-4 rounded-lg cream-bg font-bold transition-all duration-300 transform hover:scale-105">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Detail Modal -->
+    <div id="product-detail-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-75 z-[55] flex justify-center items-center p-4 opacity-0 pointer-events-none">
+        <div id="product-detail-modal-content" class="modal-content bg-white dark:bg-dark-surface w-full max-w-3xl rounded-lg shadow-lg flex flex-col md:flex-row max-h-[90vh]">
+            <!-- Close Button -->
+            <button id="close-detail-btn" class="absolute -top-3 -right-3 text-white bg-black dark:bg-white dark:text-black rounded-full p-1 z-10">
+                <span data-lucide="x" class="w-6 h-6"></span>
             </button>
+            
+            <!-- Image Column -->
+            <div class="w-full md:w-1/2">
+                <img id="detail-img" src="" alt="Product Image" class="w-full h-64 md:h-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-t-none">
+            </div>
+            
+            <!-- Details Column -->
+            <div class="w-full md:w-1/2 flex flex-col p-6 overflow-y-auto">
+                <h2 id="detail-name" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Product Name</h2>
+                
+                <!-- Condition Badge -->
+                <span id="detail-condition-badge" class="text-sm font-medium px-3 py-1 rounded-full self-start mb-4"></span>
+                
+                <p id="detail-desc" class="text-gray-600 dark:text-dark-secondary mb-4"></p>
+                
+                <div class="border-y dark:border-dark-border py-4 mb-4 space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 dark:text-dark-secondary">Condition:</span>
+                        <span id="detail-condition" class="font-medium text-gray-900 dark:text-white"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 dark:text-dark-secondary">Usage:</span>
+                        <span id="detail-usage" class="font-medium text-gray-900 dark:text-white"></span>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Refurbished Notes:</h4>
+                    <p id="detail-notes" class="text-gray-600 dark:text-dark-secondary text-sm"></p>
+                </div>
+
+                <div class="mt-auto">
+                    <span class="text-3xl font-extrabold text-light-mode-black dark:text-dark-mode-cream mb-4 block">$<span id="detail-price">0.00</span></span>
+                    <button id="detail-add-to-cart-btn" class="w-full py-3 rounded-lg cream-bg text-lg font-bold transition-all duration-300 transform hover:scale-105">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
 
-    <!-- 
-        JAVASCRIPT SECTION
-    -->
+    <!-- ============================================= -->
+    <!-- === JAVASCRIPT === -->
+    <!-- ============================================= -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
-            // --- STATE MANAGEMENT ---
-            let cart = []; // Array of product objects
-
-            // --- SELECTORS ---
-            const productContainer = document.getElementById('product-container');
-            const errorContainer = document.getElementById('error-container');
-            const errorMessage = document.getElementById('error-message');
-            
-            // Theme Toggle
-            const themeToggle = document.getElementById('theme-toggle');
-            
-            // Cart Elements
-            const cartSidebar = document.getElementById('cart-sidebar');
-            const cartOverlay = document.getElementById('cart-overlay');
-            const openCartBtn = document.getElementById('open-cart-btn');
+            // --- Main App Elements ---
+            const productListEl = document.getElementById('product-list');
+            const cartButton = document.getElementById('cart-button');
+            const cartModal = document.getElementById('cart-modal');
             const closeCartBtn = document.getElementById('close-cart-btn');
             const cartItemsContainer = document.getElementById('cart-items-container');
-            const cartEmptyMsg = document.getElementById('cart-empty-msg');
-            const cartCount = document.getElementById('cart-count');
-            const cartSubtotal = document.getElementById('cart-subtotal');
+            const cartCountEl = document.getElementById('cart-count');
+            const cartSubtotalEl = document.getElementById('cart-subtotal');
+            const emptyCartMsg = document.getElementById('empty-cart-msg');
             const checkoutBtn = document.getElementById('checkout-btn');
-
-            // Modal Elements
-            const modalContainer = document.getElementById('modal-container');
-            const modalContent = document.getElementById('modal-content');
-            const modalCloseBtn = document.getElementById('modal-close-btn');
-
-            // --- THEME LOGIC ---
-            const userTheme = localStorage.getItem('theme');
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const toastEl = document.getElementById('toast');
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const searchBar = document.getElementById('search-bar');
             
-            const themeCheck = () => {
-                if (userTheme === 'dark' || (!userTheme && systemTheme)) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            };
+            // --- Help Modal Elements ---
+            const helpModal = document.getElementById('help-modal');
+            const closeHelpBtn = document.getElementById('close-help-btn');
+            const customerServiceLink = document.getElementById('customer-service-link');
+            const footerHelpLink = document.getElementById('footer-help-link');
+            const helpContactForm = document.getElementById('help-contact-form');
             
-            const themeSwitch = () => {
-                if (document.documentElement.classList.contains('dark')) {
-                    document.documentElement.classList.remove('dark');
-                    localStorage.setItem('theme', 'light');
-                } else {
-                    document.documentElement.classList.add('dark');
-                    localStorage.setItem('theme', 'dark');
-                }
-            };
-            
-            themeToggle.addEventListener('click', themeSwitch);
-            themeCheck(); // Check theme on load
+            // --- Product Detail Modal Elements ---
+            const productDetailModal = document.getElementById('product-detail-modal');
+            const closeDetailBtn = document.getElementById('close-detail-btn');
+            const detailImg = document.getElementById('detail-img');
+            const detailName = document.getElementById('detail-name');
+            const detailConditionBadge = document.getElementById('detail-condition-badge');
+            const detailDesc = document.getElementById('detail-desc');
+            const detailCondition = document.getElementById('detail-condition');
+            const detailUsage = document.getElementById('detail-usage');
+            const detailNotes = document.getElementById('detail-notes');
+            const detailPrice = document.getElementById('detail-price');
+            const detailAddToCartBtn = document.getElementById('detail-add-to-cart-btn');
 
-            // --- API CALL: FETCH PRODUCTS ---
+            // --- Shared State ---
+            let cart = [];
+            let allProducts = []; // A master list that never changes
+
+            // --- Dark Mode ---
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            darkModeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            });
+
+            // --- Icon Initialization ---
+            lucide.createIcons();
+
+            // --- Product Loading ---
             async function fetchProducts() {
                 try {
                     const response = await fetch('api/products.php');
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`Network response was not ok (status: ${response.status})`);
                     }
-                    const products = await response.json();
-                    
-                    if (products.error) {
-                        throw new Error(products.error);
+                    const data = await response.json();
+                    if (data.error) {
+                        throw new Error(data.error);
                     }
-                    
-                    displayProducts(products);
+                    allProducts = data; // Create a copy for filtering
+                    displayProducts(allProducts);
                 } catch (error) {
-                    console.error('Fetch error:', error);
-                    productContainer.innerHTML = ''; // Clear loading skeleton
-                    errorMessage.textContent = `Error loading products: ${error.message}. Please check the API connection.`;
-                    errorContainer.classList.remove('hidden');
+                    console.error('Failed to fetch products:', error);
+                    productListEl.innerHTML = `<p class="text-red-500 col-span-full text-center">Failed to load products. Please check the API path and database connection.</p>`;
                 }
             }
 
-            // --- RENDER PRODUCTS ---
-            function displayProducts(products) {
-                productContainer.innerHTML = ''; // Clear loading skeleton
-                if (!products || products.length === 0) {
-                    errorMessage.textContent = 'No products found.';
-                    errorContainer.classList.remove('hidden');
+            function displayProducts(productsToDisplay) {
+                productListEl.innerHTML = ''; // Clear existing products
+                if (productsToDisplay.length === 0) {
+                    productListEl.innerHTML = '<p class="text-gray-500 dark:text-dark-secondary col-span-full text-center">No products found matching your search.</p>';
                     return;
                 }
-                
-                products.forEach(product => {
-                    const card = document.createElement('div');
-                    card.className = 'product-card bg-white dark:bg-stone-900 rounded-lg shadow-md overflow-hidden flex flex-col';
-                    
-                    // Star rating HTML
-                    let starsHtml = '';
-                    const rating = Math.max(0, Math.min(5, product.rating || 4.5)); // Default rating
-                    for (let i = 1; i <= 5; i++) {
-                        starsHtml += `<i data-lucide="star" class="w-4 h-4 ${i <= rating ? 'text-green-500 fill-current' : 'text-stone-300 dark:text-stone-600'}"></i>`;
-                    }
 
+                productsToDisplay.forEach(product => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card bg-white dark:bg-dark-surface rounded-lg shadow-lg overflow-hidden flex flex-col cream-border';
                     card.innerHTML = `
-                        <div class="h-48 w-full overflow-hidden">
-                            <img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover">
+                        <div class="relative cursor-pointer product-details-trigger" data-id="${product.id}">
+                            <span class="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">${product.condition}</span>
+                            <img src="${product.image_url}" alt="${product.name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/333/fff?text=${product.name.replace(' ','+')}'">
                         </div>
-                        <div class="p-4 flex flex-col flex-1">
-                            <h3 class="text-lg font-bold text-black dark:text-white mb-1 truncate">${product.name}</h3>
-                            <div class="flex items-center mb-2">
-                                ${starsHtml}
-                                <span class="text-xs text-stone-500 ml-2">(${product.reviews || Math.floor(Math.random() * 200 + 50)})</span>
+                        <div class="p-5 flex flex-col flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 cursor-pointer product-details-trigger" data-id="${product.id}">${product.name}</h3>
+                            <p class="text-gray-600 dark:text-dark-secondary text-sm mb-4 flex-1">${product.description}</p>
+                            
+                            <!-- Star Rating -->
+                            <div class="flex items-center mb-4">
+                                ${[...Array(5)].map((_, i) => `
+                                    <svg class="w-5 h-5 ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.83 5.625h5.914c.969 0 1.371 1.24.588 1.81l-4.784 3.475 1.83 5.625c.3.921-.755 1.688-1.54 1.18l-4.784-3.475-4.784 3.475c-.784.508-1.84-.259-1.54-1.18l1.83-5.625-4.784-3.475c-.783-.57-.38-1.81.588-1.81h5.914l1.83-5.625z" />
+                                    </svg>
+                                `).join('')}
+                                <span class="ml-2 text-sm text-gray-500 dark:text-dark-secondary">${product.rating}</span>
                             </div>
-                            <p class="text-stone-600 dark:text-stone-400 text-sm mb-3 flex-1">${product.description.substring(0, 50)}...</p>
-                            <div class="flex items-center justify-between mt-auto">
-                                <span class="text-2xl font-extrabold text-green-500">$${parseFloat(product.price).toFixed(2)}</span>
-                                <button data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.price}" data-product-image="${product.image_url}" class="add-to-cart-btn bg-green-500 text-black dark:text-white font-bold py-2 px-4 rounded-full hover:bg-green-600 transition duration-300 transform hover:scale-105">
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-extrabold text-light-mode-black dark:text-dark-mode-cream">$${product.price}</span>
+                                <button class="add-to-cart-btn px-4 py-2 rounded-full cream-bg transition-all duration-300 transform hover:scale-105" data-id="${product.id}">
                                     Add to Cart
                                 </button>
                             </div>
                         </div>
                     `;
-                    productContainer.appendChild(card);
-                });
-                
-                // Add event listeners to new buttons
-                document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-                    button.addEventListener('click', handleAddToCart);
+                    productListEl.appendChild(card);
                 });
 
-                // Init icons
-                lucide.createIcons();
-            }
-
-            // --- CART LOGIC ---
-            function handleAddToCart(e) {
-                const btn = e.target;
-                const productData = btn.dataset;
-                
-                const existingProduct = cart.find(item => item.id === productData.productId);
-                
-                if (existingProduct) {
-                    existingProduct.quantity += 1;
-                } else {
-                    cart.push({
-                        id: productData.productId,
-                        name: productData.productName,
-                        price: parseFloat(productData.productPrice),
-                        image: productData.productImage,
-                        quantity: 1
+                // --- Product Card Animation Observer ---
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                            observer.unobserve(entry.target);
+                        }
                     });
-                }
-                updateCart();
-                openCart();
-            }
-            
-            function updateCart() {
-                // Clear cart items
-                cartItemsContainer.innerHTML = '';
+                }, { threshold: 0.1 });
                 
+                document.querySelectorAll('.product-card').forEach(card => {
+                    observer.observe(card);
+                });
+            }
+
+            // --- Cart Functionality ---
+            function openCart() { cartModal.classList.remove('hidden'); }
+            function closeCart() { cartModal.classList.add('hidden'); }
+
+            function updateCart() {
+                cartItemsContainer.innerHTML = '';
                 if (cart.length === 0) {
-                    cartEmptyMsg.classList.remove('hidden');
-                    checkoutBtn.disabled = true;
+                    cartItemsContainer.appendChild(emptyCartMsg);
+                    emptyCartMsg.style.display = 'block';
                 } else {
-                    cartEmptyMsg.classList.add('hidden');
-                    checkoutBtn.disabled = false;
-                    
+                    emptyCartMsg.style.display = 'none';
                     cart.forEach(item => {
                         const itemEl = document.createElement('div');
-                        itemEl.className = 'flex items-center space-x-3 p-2 rounded-lg bg-stone-50 dark:bg-stone-800';
+                        itemEl.className = 'flex items-center justify-between py-4 border-b dark:border-dark-border';
                         itemEl.innerHTML = `
-                            <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-md">
-                            <div class="flex-1">
-                                <h4 class="text-sm font-bold text-black dark:text-white truncate">${item.name}</h4>
-                                <span class="text-sm text-stone-600 dark:text-stone-400">$${item.price.toFixed(2)}</span>
-                                <div class="flex items-center mt-1">
-                                    <button data-id="${item.id}" class="cart-quantity-decrease p-1 rounded-full bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600">
-                                        <i data-lucide="minus" class="w-4 h-4"></i>
-                                    </button>
-                                    <span class="font-bold w-8 text-center">${item.quantity}</span>
-                                    <button data-id="${item.id}" class="cart-quantity-increase p-1 rounded-full bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600">
-                                        <i data-lucide="plus" class="w-4 h-4"></i>
-                                    </button>
+                            <div class="flex items-center space-x-4">
+                                <img src="${item.image_url}" alt="${item.name}" class="w-20 h-20 object-cover rounded-lg" onerror="this.src='https://placehold.co/100x100/333/fff?text=${item.name.replace(' ','+')}'">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${item.name}</h4>
+                                    <span class="text-gray-500 dark:text-dark-secondary">$${item.price}</span>
                                 </div>
                             </div>
-                            <button data-id="${item.id}" class="cart-remove-item p-1 rounded-full text-stone-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900">
-                                <i data-lucide="trash-2" class="w-5 h-5"></i>
-                            </button>
+                            <div class="flex items-center space-x-3">
+                                <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${item.id}" data-change="-1">-</button>
+                                <span class="text-lg text-gray-900 dark:text-white">${item.quantity}</span>
+                                <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${item.id}" data-change="1">+</button>
+                                <button class="remove-from-cart text-red-500 hover:text-red-700" data-id="${item.id}">
+                                    <span data-lucide="trash-2" class="w-5 h-5"></span>
+                                </button>
+                            </div>
                         `;
                         cartItemsContainer.appendChild(itemEl);
                     });
+                    lucide.createIcons(); // Re-render icons in cart
                 }
-
-                // Update subtotal
+                
                 const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-                cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+                cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
                 
-                // Update cart count bubble
-                const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-                if (totalItems > 0) {
-                    cartCount.textContent = totalItems;
-                    cartCount.classList.remove('hidden');
+                const totalCount = cart.reduce((total, item) => total + item.quantity, 0);
+                cartCountEl.textContent = totalCount;
+            }
+            
+            function addToCart(productId) {
+                const product = allProducts.find(p => p.id == productId); // Find from allProducts
+                const existingItem = cart.find(item => item.id == productId);
+                
+                if (existingItem) {
+                    existingItem.quantity++;
                 } else {
-                    cartCount.classList.add('hidden');
+                    cart.push({ ...product, quantity: 1 });
                 }
-                
-                // Add listeners to new cart buttons
-                document.querySelectorAll('.cart-quantity-increase').forEach(btn => btn.addEventListener('click', () => changeQuantity(btn.dataset.id, 1)));
-                document.querySelectorAll('.cart-quantity-decrease').forEach(btn => btn.addEventListener('click', () => changeQuantity(btn.dataset.id, -1)));
-                document.querySelectorAll('.cart-remove-item').forEach(btn => btn.addEventListener('click', () => removeFromCart(btn.dataset.id)));
-                
-                // Init icons
-                lucide.createIcons();
+                updateCart();
+                showCustomAlert(`${product.name} added to cart!`, true);
             }
 
-            function changeQuantity(id, amount) {
-                const item = cart.find(product => product.id === id);
-                if (item) {
-                    item.quantity += amount;
-                    if (item.quantity <= 0) {
-                        removeFromCart(id);
-                    } else {
-                        updateCart();
-                    }
+            function changeQuantity(productId, change) {
+                const item = cart.find(item => item.id == productId);
+                if (!item) return;
+                
+                item.quantity += change;
+                
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.id != productId);
                 }
-            }
-
-            function removeFromCart(id) {
-                cart = cart.filter(item => item.id !== id);
                 updateCart();
             }
 
-            function openCart() {
-                cartSidebar.classList.remove('translate-x-full');
-                cartOverlay.classList.remove('hidden');
+            function removeFromCart(productId) {
+                cart = cart.filter(item => item.id != productId);
+                updateCart();
             }
 
-            function closeCart() {
-                cartSidebar.classList.add('translate-x-full');
-                cartOverlay.classList.add('hidden');
-            }
-
-            [openCartBtn, cartOverlay, closeCartBtn].forEach(el => el.addEventListener('click', (e) => {
-                if (e.target === openCartBtn || e.target.closest('#open-cart-btn')) {
-                    openCart();
-                } else {
-                    closeCart();
-                }
-            }));
-
-            // --- CHECKOUT LOGIC ---
             async function handleCheckout() {
-                if (cart.length === 0) return;
-
-                checkoutBtn.disabled = true;
-                checkoutBtn.textContent = 'Processing...';
-
-                // Prepare order data
-                const orderData = {
-                    user_id: 1, // Hardcoded user_id for this demo
-                    total_price: cart.reduce((total, item) => total + (item.price * item.quantity), 0),
-                    items: cart // Send the whole cart
-                };
+                if (cart.length === 0) {
+                    showCustomAlert("Your cart is empty!", false);
+                    return;
+                }
                 
+                // Create a simplified cart for the API
+                const simpleCart = cart.map(item => ({ 
+                    id: item.id, 
+                    quantity: item.quantity,
+                    price: item.price
+                }));
+
                 try {
                     const response = await fetch('api/create_order.php', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(orderData)
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cart: simpleCart }) // Send the simple cart
                     });
                     
                     const result = await response.json();
                     
-                    if (!response.ok || result.error) {
-                        throw new Error(result.error || 'Checkout failed.');
+                    if (result.success) {
+                        cart = [];
+                        updateCart();
+                        closeCart();
+                        showCustomAlert("Order placed successfully!", true);
+                    } else {
+                        throw new Error(result.error || 'Failed to place order');
                     }
-                    
-                    // Success
-                    showModal('Success!', 'Your order has been placed successfully.', 'success');
-                    cart = []; // Empty the cart
-                    updateCart();
-                    closeCart();
-                    
                 } catch (error) {
-                    console.error('Checkout error:', error);
-                    showModal('Error', `There was a problem with your order: ${error.message}`, 'error');
-                } finally {
-                    checkoutBtn.disabled = false;
-                    checkoutBtn.textContent = 'Proceed to Checkout';
+                    console.error('Checkout failed:', error);
+                    showCustomAlert(`Checkout failed: ${error.message}`, false);
+                }
+            }
+            
+            // --- Live Search Functionality ---
+            function handleSearch() {
+                const query = searchBar.value.toLowerCase();
+                const filteredProducts = allProducts.filter(product => {
+                    return product.name.toLowerCase().includes(query) || 
+                           product.description.toLowerCase().includes(query) ||
+                           product.condition.toLowerCase().includes(query);
+                });
+                displayProducts(filteredProducts);
+            }
+            
+            // --- Help Modal Functionality ---
+            function openHelpModal(e) {
+                e.preventDefault();
+                helpModal.classList.remove('hidden');
+                setTimeout(() => helpModal.classList.add('is-open'), 10); // Start animation
+            }
+            
+            function closeHelpModal() {
+                helpModal.classList.remove('is-open');
+                setTimeout(() => helpModal.classList.add('hidden'), 300); // Wait for animation
+            }
+            
+            // --- Product Detail Modal Functionality ---
+            async function openProductDetailModal(productId) {
+                try {
+                    const response = await fetch(`api/get_product.php?id=${productId}`);
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch product details.");
+                    }
+                    const product = await response.json();
+                    
+                    if(product.error) {
+                        throw new Error(product.error);
+                    }
+
+                    // Populate modal
+                    detailImg.src = product.image_url;
+                    detailImg.alt = product.name;
+                    detailName.textContent = product.name;
+                    detailDesc.textContent = product.description;
+                    detailCondition.textContent = product.condition;
+                    detailUsage.textContent = product.usage_duration;
+                    detailNotes.textContent = product.condition_notes;
+                    detailPrice.textContent = product.price;
+                    detailAddToCartBtn.dataset.id = product.id; // Set button's product ID
+
+                    // Style the condition badge
+                    detailConditionBadge.textContent = product.condition;
+                    detailConditionBadge.className = 'text-sm font-medium px-3 py-1 rounded-full self-start mb-4'; // Reset classes
+                    if (product.condition === 'Pristine') {
+                        detailConditionBadge.classList.add('bg-green-100', 'text-green-800');
+                    } else if (product.condition === 'Very Good') {
+                        detailConditionBadge.classList.add('bg-blue-100', 'text-blue-800');
+                    } else {
+                        detailConditionBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                    }
+
+                    // Show modal
+                    productDetailModal.classList.remove('hidden');
+                    setTimeout(() => productDetailModal.classList.add('is-open'), 10);
+
+                } catch (error) {
+                    console.error("Error opening product detail:", error);
+                    showCustomAlert(error.message, false);
                 }
             }
 
+            function closeProductDetailModal() {
+                productDetailModal.classList.remove('is-open');
+                setTimeout(() => productDetailModal.classList.add('hidden'), 300);
+            }
+
+            // --- Custom Alert Function ---
+            function showCustomAlert(message, isSuccess = true) {
+                toastEl.textContent = message;
+                toastEl.classList.remove('hidden', 'bg-green-500', 'bg-red-500');
+                if (isSuccess) {
+                    toastEl.classList.add('bg-green-500');
+                } else {
+                    toastEl.classList.add('bg-red-500');
+                }
+                setTimeout(() => {
+                    toastEl.classList.add('hidden');
+                }, 4000);
+            }
+
+            // --- App-Wide Event Listeners ---
+            cartButton.addEventListener('click', openCart);
+            closeCartBtn.addEventListener('click', closeCart);
             checkoutBtn.addEventListener('click', handleCheckout);
-
-            // --- MODAL LOGIC ---
-            function showModal(title, message, type = 'success') {
-                document.getElementById('modal-title').textContent = title;
-                document.getElementById('modal-message').textContent = message;
-                
-                const iconContainer = document.getElementById('modal-icon');
-                const icon = type === 'success' ? 'check-circle' : 'alert-circle';
-                const color = type === 'success' ? 'green' : 'red';
-
-                iconContainer.innerHTML = `<i data-lucide="${icon}" class="w-10 h-10 text-${color}-500"></i>`;
-                iconContainer.className = `mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-${color}-100 dark:bg-${color}-900 mb-4`;
-                
-                lucide.createIcons();
-                
-                modalContainer.classList.remove('hidden');
-                setTimeout(() => {
-                    modalContent.classList.remove('scale-95', 'opacity-0');
-                    modalContent.classList.add('scale-100', 'opacity-100');
-                }, 10); // Start transition
-            }
+            searchBar.addEventListener('input', handleSearch);
             
-            function closeModal() {
-                modalContent.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    modalContainer.classList.add('hidden');
-                }, 300); // Wait for transition to end
-            }
-            
-            modalCloseBtn.addEventListener('click', closeModal);
+            // Help Modal Listeners
+            customerServiceLink.addEventListener('click', openHelpModal);
+            footerHelpLink.addEventListener('click', openHelpModal);
+            closeHelpBtn.addEventListener('click', closeHelpModal);
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) closeHelpModal();
+            });
+            helpContactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                closeHelpModal();
+                showCustomAlert("Support message sent!", true);
+                helpContactForm.reset();
+            });
 
-            // --- INITIALIZE ---
-            lucide.createIcons(); // Initial icon render
-            fetchProducts(); // Fetch products on load
-            updateCart(); // Initialize cart view
+            // Product Detail Modal Listeners
+            closeDetailBtn.addEventListener('click', closeProductDetailModal);
+            productDetailModal.addEventListener('click', (e) => {
+                if (e.target === productDetailModal) closeProductDetailModal();
+            });
+            detailAddToCartBtn.addEventListener('click', (e) => {
+                addToCart(e.target.dataset.id);
+                closeProductDetailModal();
+            });
+
+            // FAQ Accordion Listeners
+            document.querySelectorAll('.accordion-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    button.classList.toggle('open');
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            });
+
+            document.body.addEventListener('click', (e) => {
+                // Cart functionality
+                if (e.target.closest('.add-to-cart-btn')) {
+                    const btn = e.target.closest('.add-to-cart-btn');
+                    addToCart(btn.dataset.id);
+                }
+                if (e.target.closest('.quantity-change')) {
+                    const btn = e.target.closest('.quantity-change');
+                    changeQuantity(btn.dataset.id, parseInt(btn.dataset.change));
+                }
+                if (e.target.closest('.remove-from-cart')) {
+                    // FIXED THE TYPO HERE
+                    const btn = e.target.closest('.remove-from-cart');
+                    removeFromCart(btn.dataset.id);
+                }
+                // Product Detail Click
+                if (e.target.closest('.product-details-trigger')) {
+                    const trigger = e.target.closest('.product-details-trigger');
+                    openProductDetailModal(trigger.dataset.id);
+                }
+            });
+
+            // --- Initial Load ---
+            fetchProducts();
+
         });
     </script>
 </body>

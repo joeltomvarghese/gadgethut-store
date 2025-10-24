@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GadgetHut Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto max-w-2xl mt-16 p-8 bg-white rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">GadgetHut Admin</h1>
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Update Product Image</h2>
+        <p class="text-sm text-gray-500 mb-4">
+            This panel lets you change the image for a product. Go to <a href="https://unsplash.com/" target="_blank" class="text-blue-500 hover:underline">Unsplash</a>, find an image,
+            right-click it, and select "Copy Image Address". Paste that URL here.
+        </p>
+
+        <form id="update-image-form" class="space-y-4">
+            <div>
+                <label for="product_id" class="block text-sm font-medium text-gray-700">Product ID</label>
+                <input type="number" id="product_id" name="product_id" required
+                       class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="image_url" class="block text-sm font-medium text-gray-700">New Image URL</label>
+                <input type="url" id="image_url" name="image_url" placeholder="https://images.unsplash.com/..." required
+                       class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            
+            <button type="submit"
+                    class="w-full py-2 px-4 rounded-lg bg-blue-600 text-white text-lg font-bold transition-all duration-300 transform hover:bg-blue-700">
+                Update Image
+            </button>
+        </form>
+        
+        <div id="admin-toast" class="hidden mt-4 p-4 rounded-md text-white">
+            <!-- Message will be here -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('update-image-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const productId = form.product_id.value;
+            const imageUrl = form.image_url.value;
+            const toast = document.getElementById('admin-toast');
+            
+            try {
+                const response = await fetch('../api/update_image.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        image_url: imageUrl
+                    })
+                });
+                
+                const result = await response.json();
+                
+                toast.classList.remove('hidden', 'bg-green-500', 'bg-red-500');
+                
+                if (result.success) {
+                    toast.classList.add('bg-green-500');
+                    toast.textContent = result.message;
+                    form.reset();
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+                
+            } catch (error) {
+                toast.classList.add('bg-red-500');
+                toast.textContent = `Error: ${error.message}`;
+            }
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
