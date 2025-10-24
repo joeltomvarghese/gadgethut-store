@@ -1,19 +1,26 @@
 <?php
+// --- Start Output Buffering ---
+// This captures any stray output (like PHP warnings/errors)
+ob_start();
+
 // --- Force Error Reporting to JSON ---
 error_reporting(E_ALL); // Report all errors
-ini_set('display_errors', 0); // Prevent errors from printing directly to output
-header('Content-Type: application/json'); // Set JSON header immediately
+ini_set('display_errors', 0); // Prevent errors from printing directly
 
-// Register a function to catch fatal errors and output JSON
+// Register shutdown function (still useful for fatal errors)
 register_shutdown_function(function() {
     $error = error_get_last();
-    // Check if it's a fatal error type
     if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
-        // If headers haven't been sent yet (i.e., no JSON output started)
+        // If output buffering is active, clear it
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        // If headers haven't been sent yet
         if (!headers_sent()) {
-             http_response_code(500); // Internal Server Error
+             http_response_code(500);
+             header('Content-Type: application/json'); // Ensure JSON header
              echo json_encode([
-                 'success' => false,
+                 'success' => false, // Use success flag consistently
                  'error' => 'Fatal PHP Error: ' . $error['message'],
                  'file' => $error['file'],
                  'line' => $error['line']
@@ -22,7 +29,8 @@ register_shutdown_function(function() {
     }
 });
 
-// --- Main Script Logic ---
+$response_data = []; // Initialize response data array
+
 try {
     // Include the database connection file - Use __DIR__ for reliability
     $db_config_path = __DIR__ . '/../config/db.php';
@@ -43,49 +51,54 @@ try {
         throw new Exception('Database connection failed. Check config/db.php and MySQL server status.');
     }
 
-    // Prepare the SQL query to select all products, ordered by ID
-    // Added all necessary columns for the refurbished site
+    // Prepare the SQL query
     $stmt = $pdo->prepare("
         SELECT 
-            id, 
-            name, 
-            description, 
-            price, 
-            image_url, 
-            stock, 
-            rating, 
-            `condition`,       -- Use backticks if 'condition' is a reserved word 
-            usage_duration, 
-            condition_notes 
+            id, name, description, price, image_url, stock, rating, 
+            `condition`, usage_duration, condition_notes 
         FROM products 
         ORDER BY id ASC
     ");
     
     if (!$stmt) {
-         throw new PDOException("Failed to prepare product select statement.");
+         // Use the errorInfo for more details if prepare fails
+         $errorInfo = $pdo->errorInfo();
+         throw new PDOException("Failed to prepare product select statement: " . ($errorInfo[2] ?? 'Unknown error'));
     }
 
     // Execute the query
     if (!$stmt->execute()) {
-         throw new PDOException("Failed to execute product select statement.");
+        // Use the errorInfo for more details if execute fails
+        $errorInfo = $stmt->errorInfo();
+         throw new PDOException("Failed to execute product select statement: " . ($errorInfo[2] ?? 'Unknown error'));
     }
 
-    // Fetch all products as an associative array
+    // Fetch all products
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Set success data
+    $response_data = $products; // Assign fetched products directly
 
-    // Send the products back as JSON
-    echo json_encode($products); // Directly encode the array
 
 } catch (PDOException $e) {
-    http_response_code(500); // Internal Server Error for database issues
-    echo json_encode(['error' => 'Database Query Error: ' . $e->getMessage()]);
-    exit;
+    http_response_code(500); 
+    $response_data = ['error' => 'Database Query Error: ' . $e->getMessage()];
 
 } catch (Exception $e) {
-    http_response_code(500); // Internal Server Error for other issues
-    echo json_encode(['error' => 'Server Error: ' . $e->getMessage()]);
-    exit;
+    http_response_code(500); 
+    $response_data = ['error' => 'Server Error: ' . $e->getMessage()];
 }
+
+// --- Clean Output Buffer and Send JSON ---
+// Discard anything that might have been outputted (errors, warnings, notices)
+ob_end_clean(); 
+
+// Set JSON header *again* just before output, in case it was overwritten
+header('Content-Type: application/json');
+
+// Send the final JSON response (either products or error message)
+echo json_encode($response_data);
+exit; // Ensure script stops here
 
 ?>
 
