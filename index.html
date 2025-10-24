@@ -177,6 +177,7 @@
             <h2 class="text-3xl font-bold text-light-mode-black dark:text-dark-mode-cream mb-6">Featured Products</h2>
             <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <!-- Products will be loaded here by JavaScript -->
+                <p id="loading-products" class="text-gray-500 dark:text-dark-secondary col-span-full text-center">Loading products...</p>
             </div>
         </section>
     </main>
@@ -253,7 +254,7 @@
     
     <!-- Toast Notification -->
     <div id="toast" class="hidden fixed bottom-10 right-10 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg text-lg z-[60]">
-        Order placed successfully!
+        <!-- Message set by JS -->
     </div>
     
     <!-- Help Modal -->
@@ -398,7 +399,8 @@
             const toastEl = document.getElementById('toast');
             const darkModeToggle = document.getElementById('dark-mode-toggle');
             const searchBar = document.getElementById('search-bar');
-            
+            const loadingProductsEl = document.getElementById('loading-products'); // Loading indicator
+
             // --- Help Modal Elements ---
             const helpModal = document.getElementById('help-modal');
             const closeHelpBtn = document.getElementById('close-help-btn');
@@ -433,72 +435,110 @@
                 document.documentElement.classList.toggle('dark');
                 localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
                 // Need to re-render icons after theme change
-                setTimeout(renderIcons, 0); // Use the safe wrapper
+                setTimeout(renderIcons, 50); // Use the safe wrapper with a small delay
             });
 
-            // --- NEW: Icon Rendering Helper ---
+            // --- Icon Rendering Helper ---
             function renderIcons() {
-                // Check if lucide is loaded before trying to use it
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
+                // Check if lucide is loaded and createIcons exists before trying to use it
+                if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                    try {
+                         lucide.createIcons();
+                    } catch (error) {
+                         console.error("Lucide error during createIcons:", error);
+                         // Don't retry indefinitely if createIcons itself fails
+                    }
                 } else {
-                    console.warn("Lucide library not loaded yet, skipping icon render.");
-                    // Optionally, retry after a short delay
-                    // setTimeout(renderIcons, 100); 
+                    console.warn("Lucide library not ready or createIcons not available yet.");
+                    // Retry after a short delay ONLY if it hasn't loaded yet
+                    // This prevents infinite loops if the script fails entirely
+                    if (typeof lucide === 'undefined') {
+                       // Only retry if lucide object doesn't exist at all yet
+                       setTimeout(renderIcons, 200); 
+                    }
                 }
             }
 
 
             // --- Product Loading ---
             async function fetchProducts() {
+                // Show loading indicator
+                if (loadingProductsEl) loadingProductsEl.style.display = 'block';
+                productListEl.innerHTML = ''; // Clear previous errors or content
+
                 try {
-                    const response = await fetch('api/products.php');
+                    // *** FIX: Use absolute path for fetch ***
+                    const response = await fetch('/gadgethut-store/api/products.php');
                     if (!response.ok) {
                         throw new Error(`Network response was not ok (status: ${response.status})`);
                     }
+                    // Check content type before parsing
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        const textResponse = await response.text();
+                         throw new Error(`Expected JSON but received: ${contentType}. Response: ${textResponse.substring(0, 100)}...`);
+                    }
+
                     const data = await response.json();
-                    if (data.error) {
+                    // Check if the response itself is an error object
+                    if (data && data.error) {
                         throw new Error(data.error);
                     }
-                    allProducts = data; // Create a copy for filtering
+                    allProducts = data; // Assign to master list
                     displayProducts(allProducts);
+                     // Hide loading indicator
+                    if (loadingProductsEl) loadingProductsEl.style.display = 'none';
+                    renderIcons(); // Render icons after products are initially displayed
                 } catch (error) {
                     console.error('Failed to fetch products:', error);
-                    productListEl.innerHTML = `<p class="text-red-500 col-span-full text-center">Failed to load products. Please check the API path and database connection.</p>`;
+                    // Hide loading indicator and show error
+                    if (loadingProductsEl) loadingProductsEl.style.display = 'none';
+                    productListEl.innerHTML = `<p class="text-red-500 col-span-full text-center">Failed to load products. ${error.message}. Please check the API path and database connection.</p>`;
                 }
             }
 
             function displayProducts(productsToDisplay) {
                 productListEl.innerHTML = ''; // Clear existing products
+                if (!Array.isArray(productsToDisplay)) {
+                     console.error("displayProducts received invalid data:", productsToDisplay);
+                     productListEl.innerHTML = '<p class="text-red-500 col-span-full text-center">Error displaying products: Invalid data format received.</p>';
+                     return;
+                }
                 if (productsToDisplay.length === 0) {
                     productListEl.innerHTML = '<p class="text-gray-500 dark:text-dark-secondary col-span-full text-center">No products found matching your search.</p>';
                     return;
                 }
 
                 productsToDisplay.forEach(product => {
+                     if (!product || typeof product !== 'object' || !product.id) {
+                        console.warn("Skipping invalid product data:", product);
+                        return; // Skip rendering this invalid product
+                     }
                     const card = document.createElement('div');
                     card.className = 'product-card bg-white dark:bg-dark-surface rounded-lg shadow-lg overflow-hidden flex flex-col cream-border';
+                    // Add fallback for image_url if it's missing
+                    const imageUrl = product.image_url || `https://placehold.co/600x400/333/fff?text=${encodeURIComponent(product.name || 'Product')}`;
                     card.innerHTML = `
                         <div class="relative cursor-pointer product-details-trigger" data-id="${product.id}">
-                            <span class="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">${product.condition}</span>
-                            <img src="${product.image_url}" alt="${product.name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/333/fff?text=${product.name.replace(' ','+')}'">
+                            <span class="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">${product.condition || 'N/A'}</span>
+                            <img src="${imageUrl}" alt="${product.name || 'Product Image'}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/333/fff?text=${encodeURIComponent(product.name || 'Image Error')}'">
                         </div>
                         <div class="p-5 flex flex-col flex-1">
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 cursor-pointer product-details-trigger" data-id="${product.id}">${product.name}</h3>
-                            <p class="text-gray-600 dark:text-dark-secondary text-sm mb-4 flex-1">${product.description}</p>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 cursor-pointer product-details-trigger" data-id="${product.id}">${product.name || 'Unnamed Product'}</h3>
+                            <p class="text-gray-600 dark:text-dark-secondary text-sm mb-4 flex-1">${product.description || 'No description available.'}</p>
                             
                             <!-- Star Rating -->
                             <div class="flex items-center mb-4">
                                 ${[...Array(5)].map((_, i) => `
-                                    <svg class="w-5 h-5 ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 ${i < Math.floor(product.rating || 0) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.83 5.625h5.914c.969 0 1.371 1.24.588 1.81l-4.784 3.475 1.83 5.625c.3.921-.755 1.688-1.54 1.18l-4.784-3.475-4.784 3.475c-.784.508-1.84-.259-1.54-1.18l1.83-5.625-4.784-3.475c-.783-.57-.38-1.81.588-1.81h5.914l1.83-5.625z" />
                                     </svg>
                                 `).join('')}
-                                <span class="ml-2 text-sm text-gray-500 dark:text-dark-secondary">${product.rating}</span>
+                                <span class="ml-2 text-sm text-gray-500 dark:text-dark-secondary">${(product.rating || 0).toFixed(1)}</span>
                             </div>
                             
                             <div class="flex justify-between items-center">
-                                <span class="text-2xl font-extrabold text-light-mode-black dark:text-dark-mode-cream">$${product.price}</span>
+                                <span class="text-2xl font-extrabold text-light-mode-black dark:text-dark-mode-cream">$${(product.price || 0).toFixed(2)}</span>
                                 <button class="add-to-cart-btn px-4 py-2 rounded-full cream-bg transition-all duration-300 transform hover:scale-105" data-id="${product.id}">
                                     Add to Cart
                                 </button>
@@ -526,7 +566,7 @@
             }
 
             // --- Cart Functionality ---
-            function openCart() { cartModal.classList.remove('hidden'); }
+            function openCart() { cartModal.classList.remove('hidden'); renderIcons(); } // Render icons when cart opens
             function closeCart() { cartModal.classList.add('hidden'); }
 
             function updateCart() {
@@ -539,17 +579,19 @@
                     cart.forEach(item => {
                         const itemEl = document.createElement('div');
                         itemEl.className = 'flex items-center justify-between py-4 border-b dark:border-dark-border';
+                        // Add fallbacks for cart item display
+                         const imageUrl = item.image_url || `https://placehold.co/100x100/333/fff?text=${encodeURIComponent(item.name || 'Product')}`;
                         itemEl.innerHTML = `
                             <div class="flex items-center space-x-4">
-                                <img src="${item.image_url}" alt="${item.name}" class="w-20 h-20 object-cover rounded-lg" onerror="this.src='https://placehold.co/100x100/333/fff?text=${item.name.replace(' ','+')}'">
+                                <img src="${imageUrl}" alt="${item.name || 'Product Image'}" class="w-20 h-20 object-cover rounded-lg" onerror="this.src='https://placehold.co/100x100/333/fff?text=${encodeURIComponent(item.name || 'Image Error')}'">
                                 <div>
-                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${item.name}</h4>
-                                    <span class="text-gray-500 dark:text-dark-secondary">$${item.price}</span>
+                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${item.name || 'Unnamed Product'}</h4>
+                                    <span class="text-gray-500 dark:text-dark-secondary">$${(item.price || 0).toFixed(2)}</span>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
                                 <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${item.id}" data-change="-1">-</button>
-                                <span class="text-lg text-gray-900 dark:text-white">${item.quantity}</span>
+                                <span class="text-lg text-gray-900 dark:text-white">${item.quantity || 1}</span>
                                 <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${item.id}" data-change="1">+</button>
                                 <button class="remove-from-cart text-red-500 hover:text-red-700" data-id="${item.id}">
                                     <span data-lucide="trash-2" class="w-5 h-5"></span>
@@ -561,41 +603,50 @@
                     renderIcons(); // Re-render icons in cart - Use the safe wrapper
                 }
                 
-                const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+                const subtotal = cart.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 1)), 0);
                 cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
                 
-                const totalCount = cart.reduce((total, item) => total + item.quantity, 0);
+                const totalCount = cart.reduce((total, item) => total + (item.quantity || 1), 0);
                 cartCountEl.textContent = totalCount;
             }
             
             function addToCart(productId) {
                 const product = allProducts.find(p => p.id == productId); // Find from allProducts
+                 if (!product || !product.id) { // Check if product or its ID exists
+                     console.error(`Product with ID ${productId} not found or invalid.`);
+                     showCustomAlert(`Error: Product not found or invalid.`, false);
+                     return;
+                 }
                 const existingItem = cart.find(item => item.id == productId);
                 
                 if (existingItem) {
-                    existingItem.quantity++;
+                    existingItem.quantity = (existingItem.quantity || 0) + 1;
                 } else {
                     cart.push({ ...product, quantity: 1 });
                 }
                 updateCart();
-                showCustomAlert(`${product.name} added to cart!`, true);
+                showCustomAlert(`${product.name || 'Item'} added to cart!`, true);
             }
 
             function changeQuantity(productId, change) {
-                const item = cart.find(item => item.id == productId);
-                if (!item) return;
+                const itemIndex = cart.findIndex(item => item.id == productId); // Find index
+                if (itemIndex === -1) return; // Item not found
                 
-                item.quantity += change;
+                const item = cart[itemIndex];
+                item.quantity = (item.quantity || 0) + change;
                 
                 if (item.quantity <= 0) {
-                    cart = cart.filter(i => i.id != productId);
+                    cart.splice(itemIndex, 1); // Remove item using splice
                 }
                 updateCart();
             }
 
             function removeFromCart(productId) {
-                cart = cart.filter(item => item.id != productId);
-                updateCart();
+                 const itemIndex = cart.findIndex(item => item.id == productId);
+                 if (itemIndex !== -1) {
+                     cart.splice(itemIndex, 1); // Remove item using splice
+                     updateCart();
+                 }
             }
 
             async function handleCheckout() {
@@ -604,19 +655,27 @@
                     return;
                 }
                 
-                // Create a simplified cart for the API
+                // Create a simplified cart for the API, ensuring valid data
                 const simpleCart = cart.map(item => ({ 
                     id: item.id, 
-                    quantity: item.quantity,
-                    price: item.price
+                    quantity: item.quantity || 1, // Default quantity to 1 if missing
+                    price: item.price || 0      // Default price to 0 if missing
                 }));
 
                 try {
-                    const response = await fetch('api/create_order.php', {
+                     // *** FIX: Use absolute path for fetch ***
+                    const response = await fetch('/gadgethut-store/api/create_order.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ cart: simpleCart }) // Send the simple cart
                     });
+
+                    // Check content type before parsing
+                    const contentType = response.headers.get("content-type");
+                     if (!response.ok || !contentType || !contentType.includes("application/json")) {
+                         const textResponse = await response.text();
+                         throw new Error(`Server error (${response.status}): ${textResponse.substring(0, 100)}...`);
+                     }
                     
                     const result = await response.json();
                     
@@ -624,8 +683,10 @@
                         cart = [];
                         updateCart();
                         closeCart();
-                        showCustomAlert("Order placed successfully!", true);
+                        // Update the success message here
+                        showCustomAlert("Thanks for shopping!", true); 
                     } else {
+                        // Throw error to be caught below
                         throw new Error(result.error || 'Failed to place order');
                     }
                 } catch (error) {
@@ -638,9 +699,11 @@
             function handleSearch() {
                 const query = searchBar.value.toLowerCase();
                 const filteredProducts = allProducts.filter(product => {
-                    return product.name.toLowerCase().includes(query) || 
-                           product.description.toLowerCase().includes(query) ||
-                           product.condition.toLowerCase().includes(query);
+                    // Check if properties exist before calling toLowerCase
+                    const nameMatch = product.name ? product.name.toLowerCase().includes(query) : false;
+                    const descMatch = product.description ? product.description.toLowerCase().includes(query) : false;
+                    const conditionMatch = product.condition ? product.condition.toLowerCase().includes(query) : false;
+                    return nameMatch || descMatch || conditionMatch;
                 });
                 displayProducts(filteredProducts);
             }
@@ -661,36 +724,51 @@
             // --- Product Detail Modal Functionality ---
             async function openProductDetailModal(productId) {
                 try {
-                    const response = await fetch(`api/get_product.php?id=${productId}`);
+                    // *** FIX: Use absolute path for fetch ***
+                    const response = await fetch(`/gadgethut-store/api/get_product.php?id=${productId}`);
                     if (!response.ok) {
                         throw new Error("Failed to fetch product details.");
                     }
+                     // Check content type before parsing
+                    const contentType = response.headers.get("content-type");
+                     if (!contentType || !contentType.includes("application/json")) {
+                         const textResponse = await response.text();
+                         throw new Error(`Expected JSON but received: ${contentType}. Response: ${textResponse.substring(0, 100)}...`);
+                     }
+
                     const product = await response.json();
                     
                     if(product.error) {
                         throw new Error(product.error);
                     }
+                    
+                    // Add fallbacks for potentially missing data
+                    const imageUrl = product.image_url || `https://placehold.co/600x400/333/fff?text=${encodeURIComponent(product.name || 'Product')}`;
 
                     // Populate modal
-                    detailImg.src = product.image_url;
-                    detailImg.alt = product.name;
-                    detailName.textContent = product.name;
-                    detailDesc.textContent = product.description;
-                    detailCondition.textContent = product.condition;
-                    detailUsage.textContent = product.usage_duration;
-                    detailNotes.textContent = product.condition_notes || 'No specific notes.'; // Add default text
-                    detailPrice.textContent = product.price;
+                    detailImg.src = imageUrl;
+                    detailImg.onerror = () => { detailImg.src = `https://placehold.co/600x400/333/fff?text=${encodeURIComponent(product.name || 'Image Error')}`; }; // Add onerror handler
+                    detailImg.alt = product.name || 'Product Image';
+                    detailName.textContent = product.name || 'Unnamed Product';
+                    detailDesc.textContent = product.description || 'No description available.';
+                    detailCondition.textContent = product.condition || 'N/A';
+                    detailUsage.textContent = product.usage_duration || 'N/A';
+                    detailNotes.textContent = product.condition_notes || 'No specific notes.';
+                    detailPrice.textContent = (product.price || 0).toFixed(2);
                     detailAddToCartBtn.dataset.id = product.id; // Set button's product ID
 
                     // Style the condition badge
-                    detailConditionBadge.textContent = product.condition;
+                    const conditionText = product.condition || 'N/A';
+                    detailConditionBadge.textContent = conditionText;
                     detailConditionBadge.className = 'text-sm font-medium px-3 py-1 rounded-full self-start mb-4'; // Reset classes
-                    if (product.condition === 'Pristine') {
+                    if (conditionText === 'Pristine') {
                         detailConditionBadge.classList.add('bg-green-100', 'text-green-800');
-                    } else if (product.condition === 'Very Good') {
+                    } else if (conditionText === 'Very Good') {
                         detailConditionBadge.classList.add('bg-blue-100', 'text-blue-800');
-                    } else { // Good
+                    } else if (conditionText === 'Good') { // Good
                         detailConditionBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                    } else {
+                         detailConditionBadge.classList.add('bg-gray-100', 'text-gray-800'); // Default for N/A
                     }
 
                     // Show modal
@@ -718,7 +796,9 @@
                 } else {
                     toastEl.classList.add('bg-red-500');
                 }
-                setTimeout(() => {
+                // Clear previous timeout if any
+                if(toastEl.timeoutId) clearTimeout(toastEl.timeoutId);
+                toastEl.timeoutId = setTimeout(() => {
                     toastEl.classList.add('hidden');
                 }, 4000);
             }
@@ -785,14 +865,23 @@
                 // Product Detail Click
                 if (e.target.closest('.product-details-trigger')) {
                     const trigger = e.target.closest('.product-details-trigger');
-                    openProductDetailModal(trigger.dataset.id);
+                     // Ensure data-id exists before proceeding
+                     if (trigger.dataset && trigger.dataset.id) {
+                         openProductDetailModal(trigger.dataset.id);
+                     } else {
+                         console.warn("Product details trigger clicked but missing data-id:", trigger);
+                     }
                 }
             });
 
             // --- Initial Load ---
-            fetchProducts();
-            // Initial icon render - Use the safe wrapper
-            renderIcons();
+            // Delay initial fetch slightly to let external scripts load
+            setTimeout(() => {
+                 fetchProducts(); 
+                 // Initial icon render needed for static icons like header
+                 renderIcons();
+            }, 100); // Increased delay slightly to 100ms
+
 
         });
     </script>
