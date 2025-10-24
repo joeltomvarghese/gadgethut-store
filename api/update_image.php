@@ -1,100 +1,89 @@
-<?php
+    <?php
     // --- Force Error Reporting to JSON ---
     error_reporting(E_ALL);
     ini_set('display_errors', 0);
     header('Content-Type: application/json');
-
+    
     register_shutdown_function(function() {
         $error = error_get_last();
         if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
             if (!headers_sent()) {
                  http_response_code(500);
-                 echo json_encode(['success' => false, 'error' => 'Fatal PHP Error: ' . $error['message'] . ' in ' . $error['file'] . ' line ' . $error['line']]);
+                 header('Content-Type: application/json'); // Ensure header
+                 echo json_encode(['success' => false, 'error' => 'Fatal PHP Error: ' . $error['message']]);
             }
         }
     });
-
+    
+    // --- Main Script Logic ---
     try {
-        // Include DB connection
+        // Include the database connection file
         $db_config_path = __DIR__ . '/../config/db.php';
         if (!file_exists($db_config_path)) {
             throw new Exception("Database config file not found.");
         }
         require_once $db_config_path;
-
+    
         if (!function_exists('getDbConnection')) {
             throw new Exception('getDbConnection function is not defined.');
         }
-
-        // Check request method
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405); // Method Not Allowed
-            echo json_encode(['success' => false, 'error' => 'Invalid request method. Only POST is allowed.']);
-            exit;
+    
+        // Get the raw POST data
+        $json_data = file_get_contents('php://input');
+        if ($json_data === false) {
+            throw new Exception("Could not read input data.");
         }
-
-        // Get POST data
-        $product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT);
-        $image_url = filter_input(INPUT_POST, 'image_url', FILTER_SANITIZE_URL); // Basic URL sanitization
-
+        $request_data = json_decode($json_data, true);
+    
         // Validate input
-        if ($product_id === false || $product_id <= 0) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Invalid Product ID.']);
+        if ($request_data === null || !isset($request_data['product_id']) || !isset($request_data['image_url']) || !is_numeric($request_data['product_id']) || !filter_var($request_data['image_url'], FILTER_VALIDATE_URL)) {
+            http_response_code(400); // Bad Request
+            echo json_encode(['success' => false, 'error' => 'Invalid input: Product ID must be numeric and Image URL must be a valid URL.']);
             exit;
         }
-        if ($image_url === null || $image_url === '') {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Image URL cannot be empty.']);
-            exit;
-        }
-        // More robust URL validation if needed: filter_var($image_url, FILTER_VALIDATE_URL)
-        if (filter_var($image_url, FILTER_VALIDATE_URL) === false) {
-             http_response_code(400);
-             echo json_encode(['success' => false, 'error' => 'Invalid Image URL format.']);
-             exit;
-        }
-
-
+    
+        $product_id = (int)$request_data['product_id'];
+        $image_url = $request_data['image_url'];
+    
         $pdo = getDbConnection();
         if ($pdo === null) {
             throw new Exception('Database connection failed.');
         }
-
-        // Prepare update statement
+    
+        // Prepare the UPDATE statement
         $stmt = $pdo->prepare("UPDATE products SET image_url = ? WHERE id = ?");
+        
         if (!$stmt) {
-            $errorInfo = $pdo->errorInfo();
-            throw new PDOException("Failed to prepare update statement: " . ($errorInfo[2] ?? 'Unknown error'));
+             $errorInfo = $pdo->errorInfo();
+             throw new PDOException("Failed to prepare update statement: " . ($errorInfo[2] ?? 'Unknown PDO error'));
         }
-
-        // Execute update
-        $success = $stmt->execute([$image_url, $product_id]);
-
-        if ($success) {
-            // Check if any row was actually updated
-            if ($stmt->rowCount() > 0) {
-                echo json_encode(['success' => true, 'message' => 'Image URL updated successfully.']);
-            } else {
-                 http_response_code(404); // Not Found or No Change
-                 echo json_encode(['success' => false, 'error' => 'Product ID not found or URL was the same.']);
-            }
+    
+        // Execute the update
+        if (!$stmt->execute([$image_url, $product_id])) {
+            $errorInfo = $stmt->errorInfo();
+            throw new PDOException("Failed to execute update statement: " . ($errorInfo[2] ?? 'Unknown PDO error'));
+        }
+    
+        // Check if any row was actually updated
+        if ($stmt->rowCount() > 0) {
+            echo json_encode(['success' => true]);
         } else {
-             $errorInfo = $stmt->errorInfo();
-            throw new PDOException("Failed to execute update statement: " . ($errorInfo[2] ?? 'Unknown error'));
+            // This might happen if the product ID doesn't exist
+            http_response_code(404); // Not Found
+            echo json_encode(['success' => false, 'error' => 'Product not found or image URL was already the same.']);
         }
-
+    
     } catch (PDOException $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Database Update Error: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'error' => 'Database Error: ' . $e->getMessage()]);
         exit;
+    
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'error' => 'Server Error: ' . $e->getMessage()]);
         exit;
     }
-
+    
     ?>
     
-
 
