@@ -6,8 +6,8 @@
     <title>GadgetHut - Certified Refurbished</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide Icons - MOVED TO BOTTOM OF BODY -->
+    <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body {
@@ -432,10 +432,22 @@
             darkModeToggle.addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
                 localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                // Need to re-render icons after theme change
+                setTimeout(renderIcons, 0); // Use the safe wrapper
             });
 
-            // --- Icon Initialization ---
-            lucide.createIcons();
+            // --- NEW: Icon Rendering Helper ---
+            function renderIcons() {
+                // Check if lucide is loaded before trying to use it
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                } else {
+                    console.warn("Lucide library not loaded yet, skipping icon render.");
+                    // Optionally, retry after a short delay
+                    // setTimeout(renderIcons, 100); 
+                }
+            }
+
 
             // --- Product Loading ---
             async function fetchProducts() {
@@ -509,6 +521,8 @@
                 document.querySelectorAll('.product-card').forEach(card => {
                     observer.observe(card);
                 });
+                 // Re-render icons after displaying products
+                renderIcons(); // Use the safe wrapper
             }
 
             // --- Cart Functionality ---
@@ -544,7 +558,7 @@
                         `;
                         cartItemsContainer.appendChild(itemEl);
                     });
-                    lucide.createIcons(); // Re-render icons in cart
+                    renderIcons(); // Re-render icons in cart - Use the safe wrapper
                 }
                 
                 const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -636,6 +650,7 @@
                 e.preventDefault();
                 helpModal.classList.remove('hidden');
                 setTimeout(() => helpModal.classList.add('is-open'), 10); // Start animation
+                renderIcons(); // Ensure icons render - Use the safe wrapper
             }
             
             function closeHelpModal() {
@@ -663,7 +678,7 @@
                     detailDesc.textContent = product.description;
                     detailCondition.textContent = product.condition;
                     detailUsage.textContent = product.usage_duration;
-                    detailNotes.textContent = product.condition_notes;
+                    detailNotes.textContent = product.condition_notes || 'No specific notes.'; // Add default text
                     detailPrice.textContent = product.price;
                     detailAddToCartBtn.dataset.id = product.id; // Set button's product ID
 
@@ -674,13 +689,14 @@
                         detailConditionBadge.classList.add('bg-green-100', 'text-green-800');
                     } else if (product.condition === 'Very Good') {
                         detailConditionBadge.classList.add('bg-blue-100', 'text-blue-800');
-                    } else {
+                    } else { // Good
                         detailConditionBadge.classList.add('bg-yellow-100', 'text-yellow-800');
                     }
 
                     // Show modal
                     productDetailModal.classList.remove('hidden');
                     setTimeout(() => productDetailModal.classList.add('is-open'), 10);
+                    renderIcons(); // Ensure icons render - Use the safe wrapper
 
                 } catch (error) {
                     console.error("Error opening product detail:", error);
@@ -741,6 +757,7 @@
             document.querySelectorAll('.accordion-button').forEach(button => {
                 button.addEventListener('click', () => {
                     const content = button.nextElementSibling;
+                    const icon = button.querySelector('.accordion-icon');
                     button.classList.toggle('open');
                     if (content.style.maxHeight) {
                         content.style.maxHeight = null;
@@ -774,9 +791,14 @@
 
             // --- Initial Load ---
             fetchProducts();
+            // Initial icon render - Use the safe wrapper
+            renderIcons();
 
         });
     </script>
+    
+    <!-- Lucide Icons Script - MOVED TO THE BOTTOM -->
+    <script src="https://unpkg.com/lucide@latest"></script> 
 </body>
 </html>
 
