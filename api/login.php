@@ -18,7 +18,7 @@ register_shutdown_function(function() {
         if (!headers_sent()) { http_response_code(500); }
         // Ensure header again just in case
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => 'Server error during login.']);
+        echo json_encode(['success' => false, 'error' => 'Server error during login (shutdown).']); // Added (shutdown) for clarity
     }
 });
 // --- End Error Handling ---
@@ -81,11 +81,13 @@ try {
 } catch (PDOException $e) {
     http_response_code(500);
      // Log error: error_log("Login DB Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'error' => 'Database error during login: ' . $e->getMessage()]); // More specific DB error
+     // Send back a more specific error
+    echo json_encode(['success' => false, 'error' => 'Database error during login: ' . $e->getMessage()]);
 } catch (Exception $e) {
     http_response_code(500);
      // Log error: error_log("Login Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'error' => 'Server error during login: ' . $e->getMessage()]); // More specific general error
+     // Send back a more specific error
+    echo json_encode(['success' => false, 'error' => 'Server error during login: ' . $e->getMessage()]);
 }
 
 exit; // Ensure script stops here
