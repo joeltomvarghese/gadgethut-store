@@ -1,22 +1,22 @@
 <?php
 
-// --- XAMPP SETTINGS (Default for Local Development) ---
-$host = '127.0.0.1'; // Use 127.0.0.1 instead of 'localhost'
-$db_name = 'm_commerce_db'; // Make sure this matches phpMyAdmin
-$username = 'root'; // <<< MUST BE 'root' for default XAMPP
-$password = '';     // <<< MUST BE '' (empty) for default XAMPP
-
-/*
-// --- AWS EC2 SETTINGS (Use these when deploying) ---
-// Note: You'll need to create this user and database in MySQL on your EC2 instance.
-$host = '127.0.0.1';
-$db_name = 'm_commerce_db';
-$username = 'm_commerce_user'; // Replace with your EC2 DB username
-$password = 'YourStrongPassword123!'; // Replace with your EC2 DB password
-*/
-
 function getDbConnection() {
-    global $host, $db_name, $username, $password; // Use global variables defined above
+    // --- Define Connection Details INSIDE the function ---
+    // --- XAMPP SETTINGS ---
+    $host = '127.0.0.1'; // Use 127.0.0.1 instead of 'localhost'
+    $db_name = 'm_commerce_db'; // Make sure this matches phpMyAdmin
+    $username = 'root'; // <<< MUST BE 'root' for default XAMPP
+    $password = '';     // <<< MUST BE '' (empty) for default XAMPP (unless you set one!)
+
+    /*
+    // --- AWS EC2 SETTINGS (Use these when deploying) ---
+    // $host = '127.0.0.1';
+    // $db_name = 'm_commerce_db';
+    // $username = 'm_commerce_user';
+    // $password = 'YourStrongPassword123!';
+    */
+    // --- End Connection Details ---
+
     $dsn = "mysql:host=$host;dbname=$db_name;charset=utf8mb4";
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Throw exceptions on errors
@@ -25,7 +25,7 @@ function getDbConnection() {
     ];
 
     try {
-        // Use the global $username and $password here
+        // Use the $username and $password defined *inside* this function
         $pdo = new PDO($dsn, $username, $password, $options);
         return $pdo;
     } catch (PDOException $e) {
