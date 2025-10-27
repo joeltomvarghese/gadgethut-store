@@ -2,17 +2,16 @@
 
 // --- XAMPP SETTINGS (Default for Local Development) ---
 $host = '127.0.0.1'; // Use 127.0.0.1 instead of 'localhost'
-$db_name = 'm_commerce_db';
+$db_name = 'm_commerce_db'; // Double-check this matches phpMyAdmin exactly
 $username = 'root'; // Default XAMPP username
-$password = '';     // Default XAMPP password is empty
+$password = '';     // Default XAMPP password is empty (LEAVE EMPTY unless you SET one)
 
 /*
 // --- AWS EC2 SETTINGS (Use these when deploying) ---
-// Note: You'll need to create this user and database in MySQL on your EC2 instance.
 $host = '127.0.0.1';
 $db_name = 'm_commerce_db';
-$username = 'm_commerce_user'; // Replace with your EC2 DB username
-$password = 'YourStrongPassword123!'; // Replace with your EC2 DB password
+$username = 'm_commerce_user';
+$password = 'YourStrongPassword123!';
 */
 
 function getDbConnection() {
@@ -28,8 +27,11 @@ function getDbConnection() {
         $pdo = new PDO($dsn, $username, $password, $options);
         return $pdo;
     } catch (PDOException $e) {
-        // Log error instead of echoing directly
-        error_log("Database Connection Error: " . $e->getMessage());
+        // --- ADDED DETAILED LOGGING ---
+        // This will write the exact connection error to PHP's error log
+        error_log("!!! Database Connection Error in getDbConnection(): " . $e->getMessage());
+        // --- END ADDED LOGGING ---
+
         // Return null to indicate connection failure
         return null;
     }
@@ -37,4 +39,3 @@ function getDbConnection() {
 
 ?>
 
-    
