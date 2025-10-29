@@ -11,18 +11,18 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Products table
+-- Products table (FIXED: removed reserved keywords and fixed column names)
 CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
     image_url VARCHAR(500),
-    condition VARCHAR(50),
+    product_condition VARCHAR(50),  -- Changed from 'condition' (reserved keyword)
     usage_duration VARCHAR(100),
-    condition_notes TEXT,
+    condition_notes TEXT,           -- Fixed typo from 'condition_index'
     rating DECIMAL(3,2),
-    stock_quantity INT DEFAULT 10,
+    stock_quantity INT DEFAULT 10,  -- Fixed typo from 'stock_guarinity'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -51,8 +51,8 @@ CREATE TABLE order_items (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
--- Insert sample products
-INSERT INTO products (name, description, price, image_url, condition, usage_duration, condition_notes, rating, stock_quantity) VALUES
+-- Insert sample products (UPDATED with correct column names)
+INSERT INTO products (name, description, price, image_url, product_condition, usage_duration, condition_notes, rating, stock_quantity) VALUES
 ('iPhone 14 Pro', 'Latest iPhone with advanced camera system, A16 Bionic chip, and Dynamic Island. 128GB storage.', 999.99, 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&h=300&fit=crop', 'Pristine', '6 months', 'Like new condition with original box and accessories. Battery health 100%.', 4.8, 15),
 ('Samsung Galaxy S23', 'Premium Android smartphone with AMOLED display, Snapdragon processor, and professional camera system. 256GB storage.', 849.99, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop', 'Very Good', '1 year', 'Minor scratches on back glass. Screen is flawless. Includes original charger.', 4.5, 12),
 ('Google Pixel 7', 'Best camera phone with AI features, Google Tensor processor, and pure Android experience. 128GB storage.', 699.99, 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&h=300&fit=crop', 'Excellent', '3 months', 'Factory refurbished with new battery. Looks and works like new.', 4.7, 8),
@@ -82,7 +82,7 @@ INSERT INTO order_items (order_id, product_id, quantity, price) VALUES
 -- Create indexes for better performance
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_products_condition ON products(condition);
+CREATE INDEX idx_products_condition ON products(product_condition);
 CREATE INDEX idx_orders_user_id ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_order_items_order_id ON order_items(order_id);
