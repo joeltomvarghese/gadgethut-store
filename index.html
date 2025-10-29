@@ -255,7 +255,7 @@
         </div>
     </div>
 
-    <!-- JavaScript - Updated with fixed session handling -->
+    <!-- JavaScript - Updated with correct API paths -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const productListEl = document.getElementById("product-list"),
@@ -309,11 +309,11 @@
                 }
             }
 
-            // UPDATED: Fixed session checking with credentials
+            // UPDATED: Fixed API paths - removed "/gadgethut-store/" prefix
             async function checkLoginStatus() {
                 try {
-                    const response = await fetch("/gadgethut-store/api/check_session.php", {
-                        credentials: 'include' // Important for session cookies
+                    const response = await fetch("api/check_session.php", {
+                        credentials: 'include'
                     });
                     
                     if (!response.ok) {
@@ -360,9 +360,10 @@
                 renderIcons();
             }
 
+            // UPDATED: Fixed API path
             async function handleLogout() {
                 try {
-                    const response = await fetch("/gadgethut-store/api/logout.php", {
+                    const response = await fetch("api/logout.php", {
                         method: "POST",
                         credentials: 'include'
                     });
@@ -385,12 +386,13 @@
                 }
             }
 
+            // UPDATED: Fixed API path
             async function fetchProducts() {
                 if (loadingProductsEl) loadingProductsEl.style.display = "block";
                 productListEl.innerHTML = "";
                 
                 try {
-                    const response = await fetch("/gadgethut-store/api/products.php");
+                    const response = await fetch("api/products.php");
                     if (!response.ok) throw new Error(`Network response was not ok (status: ${response.status})`);
                     
                     const contentType = response.headers.get("content-type");
@@ -543,6 +545,7 @@
                 updateCart();
             }
 
+            // UPDATED: Fixed API path
             async function handleCheckout() {
                 if (!currentUser || !currentUser.loggedIn) {
                     showCustomAlert("Please log in to proceed to checkout.", false);
@@ -561,7 +564,7 @@
                 }));
 
                 try {
-                    const response = await fetch("/gadgethut-store/api/create_order.php", {
+                    const response = await fetch("api/create_order.php", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -611,9 +614,10 @@
                 setTimeout(() => helpModal.classList.add("hidden"), 300);
             }
 
+            // UPDATED: Fixed API path
             async function openProductDetailModal(productId) {
                 try {
-                    const response = await fetch(`/gadgethut-store/api/get_product.php?id=${productId}`);
+                    const response = await fetch(`api/get_product.php?id=${productId}`);
                     if (!response.ok) throw new Error("Failed to fetch product details.");
                     
                     const contentType = response.headers.get("content-type");

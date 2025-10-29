@@ -1,45 +1,34 @@
 <?php
-// Set headers first
-header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
+header('Content-Type: application/json');
 
-// Include database configuration
-include_once '../config/db.php';
+// Simple test data - remove this after testing
+$testProducts = [
+    [
+        "id" => 1,
+        "name" => "iPhone 14 Pro",
+        "description" => "Latest iPhone with advanced camera system",
+        "price" => 999.99,
+        "image_url" => "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400",
+        "condition" => "Pristine", 
+        "usage_duration" => "6 months",
+        "condition_notes" => "Like new condition",
+        "rating" => 4.8,
+        "stock_quantity" => 15
+    ],
+    [
+        "id" => 2, 
+        "name" => "Samsung Galaxy S23",
+        "description" => "Premium Android smartphone",
+        "price" => 849.99,
+        "image_url" => "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400",
+        "condition" => "Very Good",
+        "usage_duration" => "1 year", 
+        "condition_notes" => "Minor scratches on back",
+        "rating" => 4.5,
+        "stock_quantity" => 12
+    ]
+];
 
-try {
-    // Create database connection
-    $database = new Database();
-    $db = $database->getConnection();
-    
-    // Check if connection is successful
-    if ($db == null) {
-        throw new Exception("Failed to connect to database");
-    }
-    
-    // SQL query to get products
-    $sql = "SELECT id, name, description, price, product_condition, usage_duration, condition_notes, rating FROM products WHERE status = 'active'";
-    $stmt = $db->prepare($sql);
-    $stmt->execute();
-    
-    // Fetch all products
-    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Add image URLs and format the data
-    foreach ($products as &$product) {
-        $product['condition'] = $product['product_condition'];
-        $product['image_url'] = "https://placehold.co/600x400/333/fff?text=" . urlencode($product['name']);
-    }
-    
-    // Return JSON response
-    echo json_encode($products);
-    
-} catch (PDOException $e) {
-    // Database error
-    http_response_code(500);
-    echo json_encode(["error" => "Database error: " . $e->getMessage()]);
-} catch (Exception $e) {
-    // General error
-    http_response_code(500);
-    echo json_encode(["error" => $e->getMessage()]);
-}
+echo json_encode($testProducts);
+exit;
 ?>
