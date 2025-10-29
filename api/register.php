@@ -1,97 +1,56 @@
 <?php
-header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+session_start();
+header('Content-Type: application/json');
+require_once '../config/database.php';
 
-// Handle preflight requests
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(200);
-    exit();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+    exit;
 }
 
-require_once '../config/db.php';
+$username = trim($_POST['username'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
+// Debug: Log the received data
+error_log("Registration attempt: username=$username, email=$email");
+
+if (empty($username) || empty($email) || empty($password)) {
+    echo json_encode(['success' => false, 'error' => 'All fields are required']);
+    exit;
+}
+
+if (strlen($password) < 6) {
+    echo json_encode(['success' => false, 'error' => 'Password must be at least 6 characters']);
+    exit;
+}
+
+try {
+    $database = new Database();
+    $db = $database->getConnection();
     
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        http_response_code(400);
-        echo json_encode(["error" => "Invalid JSON data"]);
-        exit();
+    // Check if username or email already exists
+    $checkQuery = "SELECT id FROM users WHERE username = ? OR email = ?";
+    $checkStmt = $db->prepare($checkQuery);
+    $checkStmt->execute([$username, $email]);
+    
+    if ($checkStmt->fetch()) {
+        echo json_encode(['success' => false, 'error' => 'Username or email already exists']);
+        exit;
     }
     
-    $username = $input['username'] ?? '';
-    $email = $input['email'] ?? '';
-    $password = $input['password'] ?? '';
-    $confirm_password = $input['confirm_password'] ?? '';
+    // Create new user
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+    $insertQuery = "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)";
+    $insertStmt = $db->prepare($insertQuery);
     
-    // Validation
-    if (empty($username) || empty($email) || empty($password)) {
-        http_response_code(400);
-        echo json_encode(["error" => "All fields are required"]);
-        exit();
+    if ($insertStmt->execute([$username, $email, $hashedPassword])) {
+        echo json_encode(['success' => true, 'message' => 'Registration successful!']);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Failed to create account']);
     }
-    
-    if ($password !== $confirm_password) {
-        http_response_code(400);
-        echo json_encode(["error" => "Passwords do not match"]);
-        exit();
-    }
-    
-    if (strlen($password) < 6) {
-        http_response_code(400);
-        echo json_encode(["error" => "Password must be at least 6 characters"]);
-        exit();
-    }
-    
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        http_response_code(400);
-        echo json_encode(["error" => "Invalid email format"]);
-        exit();
-    }
-    
-    try {
-        $database = new Database();
-        $db = $database->getConnection();
-        
-        // Check if user already exists
-        $check_query = "SELECT id FROM users WHERE username = :username OR email = :email";
-        $check_stmt = $db->prepare($check_query);
-        $check_stmt->bindParam(':username', $username);
-        $check_stmt->bindParam(':email', $email);
-        $check_stmt->execute();
-        
-        if ($check_stmt->rowCount() > 0) {
-            http_response_code(400);
-            echo json_encode(["error" => "Username or email already exists"]);
-            exit();
-        }
-        
-        // Insert new user
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $insert_query = "INSERT INTO users (username, email, password, created_at) VALUES (:username, :email, :password, NOW())";
-        $insert_stmt = $db->prepare($insert_query);
-        $insert_stmt->bindParam(':username', $username);
-        $insert_stmt->bindParam(':email', $email);
-        $insert_stmt->bindParam(':password', $hashed_password);
-        
-        if ($insert_stmt->execute()) {
-            echo json_encode([
-                "success" => true,
-                "message" => "Registration successful"
-            ]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["error" => "Registration failed"]);
-        }
-        
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(["error" => "Server error: " . $e->getMessage()]);
-    }
-} else {
-    http_response_code(405);
-    echo json_encode(["error" => "Method not allowed"]);
+} catch (PDOException $e) {
+    error_log("Registration error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
 }
 ?>
