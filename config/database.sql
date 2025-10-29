@@ -1,10 +1,9 @@
-
 -- Create database
-CREATE DATABASE IF NOT EXISTS gadgethut;
+CREATE DATABASE gadgethut;
 USE gadgethut;
 
 -- Users table
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -12,23 +11,23 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Products table (FIXED SYNTAX)
-CREATE TABLE IF NOT EXISTS products (
+-- Products table
+CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
     image VARCHAR(255),
-    product_condition VARCHAR(50),  -- Changed from 'condition' to 'product_condition'
-    usage_duration VARCHAR(100),    -- Fixed space in 'usage_ duration'
-    condition_notes TEXT,           -- Fixed 'condition_index' to 'condition_notes'
+    product_condition VARCHAR(50),
+    usage_duration VARCHAR(100),
+    condition_notes TEXT,
     rating DECIMAL(3,2) DEFAULT 0.00,
-    status ENUM('active', 'inactive') DEFAULT 'active',  -- Fixed 'ENDUN' to 'ENUM'
+    status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Orders table
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     total_amount DECIMAL(10,2),
@@ -38,7 +37,7 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 
 -- Order items table
-CREATE TABLE IF NOT EXISTS order_items (
+CREATE TABLE order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
     product_id INT,
@@ -48,12 +47,12 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
--- Insert sample users (password is 'password' for both)
+-- Insert sample users
 INSERT INTO users (username, email, password) VALUES 
 ('johndoe', 'john@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
 ('janedoe', 'jane@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
--- Insert sample products (UPDATED column names)
+-- Insert sample products
 INSERT INTO products (name, description, price, product_condition, usage_duration, condition_notes, rating) VALUES 
 ('iPhone 13 Pro', 'Latest iPhone with advanced camera system', 899.99, 'Pristine', '6 months', 'Like new condition with original box', 4.8),
 ('Samsung Galaxy S21', 'Powerful Android smartphone', 699.99, 'Very Good', '1 year', 'Minor scratches on screen', 4.5),

@@ -1,49 +1,45 @@
 <?php
+// Set headers first
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
 
-// Handle preflight requests
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-require_once '../config/db.php';
+// Include database configuration
+include_once '../config/db.php';
 
 try {
+    // Create database connection
     $database = new Database();
     $db = $database->getConnection();
     
-    if (!$db) {
-        throw new Exception("Database connection failed");
+    // Check if connection is successful
+    if ($db == null) {
+        throw new Exception("Failed to connect to database");
     }
     
-    $query = "SELECT * FROM products WHERE status = 'active'";
-    $stmt = $db->prepare($query);
+    // SQL query to get products
+    $sql = "SELECT id, name, description, price, product_condition, usage_duration, condition_notes, rating FROM products WHERE status = 'active'";
+    $stmt = $db->prepare($sql);
     $stmt->execute();
     
-    $products = [];
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Use the correct column name 'product_condition' instead of 'condition'
-        $row['condition'] = $row['product_condition'];
-        
-        // Check if image exists locally, otherwise use placeholder
-        $base_url = "http://localhost/gadgethut-store";
-        if (!empty($row['image']) && file_exists('../uploads/products/' . $row['image'])) {
-            $row['image_url'] = $base_url . "/uploads/products/" . $row['image'];
-        } else {
-            $row['image_url'] = "https://placehold.co/600x400/333/fff?text=" . urlencode($row['name']);
-        }
-        
-        $products[] = $row;
+    // Fetch all products
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Add image URLs and format the data
+    foreach ($products as &$product) {
+        $product['condition'] = $product['product_condition'];
+        $product['image_url'] = "https://placehold.co/600x400/333/fff?text=" . urlencode($product['name']);
     }
     
+    // Return JSON response
     echo json_encode($products);
     
-} catch (Exception $e) {
+} catch (PDOException $e) {
+    // Database error
     http_response_code(500);
-    echo json_encode(["error" => "Failed to load products: " . $e->getMessage()]);
+    echo json_encode(["error" => "Database error: " . $e->getMessage()]);
+} catch (Exception $e) {
+    // General error
+    http_response_code(500);
+    echo json_encode(["error" => $e->getMessage()]);
 }
 ?>
