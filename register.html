@@ -1,102 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - GadgetHut</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .cream-bg { background-color: #F5F5DC; color: #121212; font-weight: bold; }
-        .cream-bg:hover { background-color: #FFFDD0; }
-        .error-message { color: #ef4444; }
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h1 class="text-3xl font-extrabold text-center mb-6 text-gray-800">
-            Create Account
-        </h1>
-        <form id="register-form" class="space-y-4">
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8 p-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Create Account</h2>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">Join GadgetHut today</p>
+        </div>
+        
+        <form id="registerForm" class="mt-8 space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <div>
-                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-                <input type="text" id="username" name="username" required
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                <input type="text" id="username" name="username" required 
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
             </div>
+            
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" id="email" name="email" required
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                <input type="email" id="email" name="email" required 
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
             </div>
+            
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="password" name="password" required minlength="6"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+                <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                <input type="password" id="password" name="password" required 
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
             </div>
-            <div>
-                <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" required
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
-                <button type="submit" class="w-full py-2 px-4 rounded-lg cream-bg transition duration-300">
-                    Register
-                </button>
+
+            <div id="registerMessage" class="hidden p-3 rounded-md"></div>
+
+            <button type="submit" 
+                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Create Account
+            </button>
+            
+            <div class="text-center">
+                <a href="login.html" class="text-blue-600 hover:text-blue-500 dark:text-blue-400">Already have an account? Sign in</a>
             </div>
         </form>
-        <p id="error-message" class="error-message text-sm mt-4 text-center"></p>
-        <p class="text-sm text-center text-gray-600 mt-4">
-            Already have an account? <a href="login.html" class="text-indigo-600 hover:underline">Login here</a>
-        </p>
-        <p class="text-sm text-center text-gray-600 mt-2">
-            <a href="index.html" class="text-indigo-600 hover:underline">Back to Store</a>
-        </p>
     </div>
 
     <script>
-        const registerForm = document.getElementById('register-form');
-        const errorMessageEl = document.getElementById('error-message');
-
-        registerForm.addEventListener('submit', async (e) => {
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            errorMessageEl.textContent = '';
-
-            const formData = new FormData(registerForm);
-            const data = Object.fromEntries(formData.entries());
-
-            // Check if passwords match
-            if (data.password !== data.confirm_password) {
-                errorMessageEl.textContent = 'Passwords do not match';
-                return;
-            }
-
+            
+            const formData = new FormData(this);
+            const messageDiv = document.getElementById('registerMessage');
+            
             try {
-                // FIXED: Use relative path instead of absolute
-                const response = await fetch('./api/register.php', {
+                const response = await fetch('api/register.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    body: formData
                 });
-
-                const contentType = response.headers.get("content-type");
-                if (!response.ok || !contentType || !contentType.includes("application/json")) {
-                    const textResponse = await response.text();
-                    throw new Error(`Server error (${response.status}): ${textResponse.substring(0, 100)}...`);
-                }
-
+                
                 const result = await response.json();
-
+                
                 if (result.success) {
-                    // Registration successful, redirect to login
-                    window.location.href = 'login.html?message=Registration successful. Please login.';
+                    messageDiv.className = 'p-3 rounded-md bg-green-100 text-green-700';
+                    messageDiv.textContent = 'Registration successful! Redirecting to login...';
+                    messageDiv.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
                 } else {
-                    errorMessageEl.textContent = result.error || 'Registration failed. Please try again.';
+                    messageDiv.className = 'p-3 rounded-md bg-red-100 text-red-700';
+                    messageDiv.textContent = result.error || 'Registration failed';
+                    messageDiv.classList.remove('hidden');
                 }
             } catch (error) {
-                console.error('Registration error:', error);
-                errorMessageEl.textContent = `An error occurred: ${error.message}`;
+                messageDiv.className = 'p-3 rounded-md bg-red-100 text-red-700';
+                messageDiv.textContent = 'Network error. Please try again.';
+                messageDiv.classList.remove('hidden');
             }
         });
     </script>

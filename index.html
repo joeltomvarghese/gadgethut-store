@@ -6,22 +6,37 @@
     <title>GadgetHut - Certified Refurbished</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons - MOVED TO BOTTOM OF BODY -->
+    <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        .dark .bg-dark-mode { background-color: #121212; }
-        .dark .bg-dark-surface { background-color: #1a1a1a; }
-        .dark .text-dark-primary { color: #E0E0E0; }
-        .dark .text-dark-secondary { color: #A0A0A0; }
+        /* --- Dark Mode Base --- */
+        .dark .bg-dark-mode { background-color: #121212; /* Deep Black */ }
+        .dark .bg-dark-surface { background-color: #1a1a1a; /* Surface Black */ }
+        /* --- Dark Mode Text (Kept light for readability) --- */
+        .dark .text-dark-primary { color: #E0E0E0; /* Light Gray */ }
+        .dark .text-dark-secondary { color: #A0A0A0; /* Medium Gray */ }
         .dark .border-dark-border { border-color: #333; }
-        .cream-text { color: #F5F5DC; }
-        .cream-bg { background-color: #F5F5DC; color: #121212; font-weight: bold; box-shadow: 0 0 5px rgba(245, 245, 220, 0.5); }
+
+        /* --- Light Mode Base --- */
+        .light .bg-light-mode { background-color: #f3f4f6; /* Default Light Gray */ }
+        .light .bg-light-surface { background-color: #ffffff; /* White */ }
+        /* --- Light Mode Text (Forced Black/Dark Gray) --- */
+        .light .text-light-primary { color: #1f2937; /* Gray 800 (Near Black) */ }
+        .light .text-light-secondary { color: #4b5563; /* Gray 600 (Dark Gray) */ }
+        .light .border-light-border { border-color: #e5e7eb; /* Gray 200 */ }
+
+
+        /* Cream Accents (Unchanged) */
+        .cream-text-accent { color: #F5F5DC; } /* For text ON dark backgrounds */
+        .cream-bg { background-color: #F5F5DC; color: #1f2937; /* Use near-black text on cream */ font-weight: bold; box-shadow: 0 0 5px rgba(245, 245, 220, 0.5); }
         .cream-bg:hover { background-color: #FFFDD0; box-shadow: 0 0 8px rgba(245, 245, 220, 0.7); }
         .cream-border { border: 1px solid #F5F5DC; }
-        .light .text-light-mode-black { color: #121212; }
-        .dark .text-dark-mode-cream { color: #F5F5DC; }
+
+        /* General Styles (Unchanged) */
         .product-card { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
         .product-card.is-visible { opacity: 1; transform: translateY(0); }
         .modal { transition: opacity 0.3s ease; }
@@ -32,28 +47,33 @@
         #product-detail-modal.is-open #product-detail-modal-content { transform: scale(1); opacity: 1; }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
         .accordion-button.open .accordion-icon { transform: rotate(180deg); }
+
+        /* Ensure Logout button stays red */
+        #logout-button { color: #ef4444; /* text-red-500 */ }
+        #logout-button:hover { color: #dc2626; /* text-red-700 */ }
+
     </style>
 </head>
-<body class="bg-stone-100 dark:bg-dark-mode text-dark-primary transition-colors duration-300">
+<body class="bg-light-mode dark:bg-dark-mode text-light-primary dark:text-dark-primary transition-colors duration-300">
 
     <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/80 dark:bg-dark-surface/80 backdrop-blur-md shadow-sm">
+    <header class="sticky top-0 z-50 bg-light-surface/80 dark:bg-dark-surface/80 backdrop-blur-md shadow-sm">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <!-- Logo -->
-            <a href="#" class="text-3xl font-extrabold text-light-mode-black dark:text-dark-mode-cream">
+            <a href="#" class="text-3xl font-extrabold text-light-primary dark:text-dark-mode-cream">
                 GadgetHut
             </a>
-            
+
             <!-- Live Search Bar -->
             <div class="flex-1 max-w-xl mx-4">
-                <div class="flex rounded-full bg-stone-100 dark:bg-dark-mode cream-border overflow-hidden">
-                    <input type="text" id="search-bar" placeholder="Start typing to search products..." class="w-full px-4 py-2 bg-transparent text-dark-primary dark:text-white focus:outline-none">
+                <div class="flex rounded-full bg-stone-100 dark:bg-dark-mode border border-gray-300 dark:border-dark-border overflow-hidden">
+                    <input type="text" id="search-bar" placeholder="Start typing to search products..." class="w-full px-4 py-2 bg-transparent text-light-primary dark:text-white focus:outline-none">
                     <button class="px-4 text-gray-600 dark:text-gray-300">
                         <span data-lucide="search" class="w-5 h-5"></span>
                     </button>
                 </div>
             </div>
-            
+
             <!-- Header Icons -->
             <div class="flex items-center space-x-6">
                 <button id="dark-mode-toggle" class="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white">
@@ -64,12 +84,12 @@
                 <div id="account-section">
                      <a href="login.html" id="account-link" class="flex items-center text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white">
                          <span data-lucide="user" class="w-6 h-6"></span>
-                         <span class="ml-2 hidden md:inline">Account</span>
+                         <span class="ml-2 hidden md:inline text-light-secondary dark:text-dark-secondary">Account</span>
                      </a>
                  </div>
                  <div id="user-section" class="hidden items-center">
-                      <span id="username-display" class="text-gray-700 dark:text-gray-300 mr-4 font-medium"></span>
-                     <button id="logout-button" class="flex items-center text-red-500 hover:text-red-700 font-medium">
+                      <span id="username-display" class="text-light-primary dark:text-dark-primary mr-4 font-medium"></span>
+                     <button id="logout-button" class="flex items-center font-medium"> {/* Red color applied via style tag */}
                          <span data-lucide="log-out" class="w-5 h-5"></span>
                          <span class="ml-1 hidden md:inline">Logout</span>
                      </button>
@@ -80,7 +100,7 @@
                 </button>
             </div>
         </nav>
-        
+
         <!-- Secondary Nav -->
         <div class="bg-gray-800 dark:bg-black text-white">
             <div class="container mx-auto px-4 py-2 flex items-center space-x-6 text-sm font-medium">
@@ -108,10 +128,10 @@
 
         <!-- Featured Products -->
         <section>
-            <h2 class="text-3xl font-bold text-light-mode-black dark:text-dark-mode-cream mb-6">Featured Products</h2>
+            <h2 class="text-3xl font-bold text-light-primary dark:text-dark-mode-cream mb-6">Featured Products</h2>
             <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <!-- Products will be loaded here by JavaScript -->
-                <p id="loading-products" class="text-gray-500 dark:text-dark-secondary col-span-full text-center">Loading products...</p>
+                <p id="loading-products" class="text-light-secondary dark:text-dark-secondary col-span-full text-center">Loading products...</p>
             </div>
         </section>
     </main>
@@ -156,140 +176,124 @@
         </div>
     </footer>
 
-    <!-- Modals -->
+    <!-- Modals (Cart, Toast, Help, Product Detail) -->
+    <!-- Shopping Cart Modal -->
     <div id="cart-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-end">
-        <div class="bg-white dark:bg-dark-surface w-full max-w-md h-full flex flex-col">
-            <div class="flex justify-between items-center p-5 border-b dark:border-dark-border">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Shopping Cart</h2>
+        <div class="bg-light-surface dark:bg-dark-surface w-full max-w-md h-full flex flex-col">
+            <div class="flex justify-between items-center p-5 border-b border-light-border dark:border-dark-border">
+                <h2 class="text-2xl font-bold text-light-primary dark:text-white">Shopping Cart</h2>
                 <button id="close-cart-btn" class="text-gray-600 dark:text-gray-300"><span data-lucide="x" class="w-7 h-7"></span></button>
             </div>
-            <div id="cart-items-container" class="flex-1 p-5 overflow-y-auto"><p id="empty-cart-msg" class="text-gray-500 dark:text-dark-secondary">Your cart is empty.</p></div>
-            <div class="p-5 border-t dark:border-dark-border space-y-4">
-                <div class="flex justify-between text-xl font-bold text-gray-900 dark:text-white"><span>Subtotal:</span><span id="cart-subtotal">$0.00</span></div>
+            <div id="cart-items-container" class="flex-1 p-5 overflow-y-auto"><p id="empty-cart-msg" class="text-light-secondary dark:text-dark-secondary">Your cart is empty.</p></div>
+            <div class="p-5 border-t border-light-border dark:border-dark-border space-y-4">
+                <div class="flex justify-between text-xl font-bold text-light-primary dark:text-white"><span>Subtotal:</span><span id="cart-subtotal">$0.00</span></div>
                 <button id="checkout-btn" class="w-full py-3 rounded-lg cream-bg text-lg font-bold transition-all duration-300 transform hover:scale-105">Proceed to Checkout</button>
             </div>
         </div>
     </div>
-
+    <!-- Toast Notification -->
     <div id="toast" class="hidden fixed bottom-10 right-10 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg text-lg z-[60]"></div>
-
+    <!-- Help Modal -->
     <div id="help-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-end opacity-0 pointer-events-none">
-        <div id="help-modal-content" class="modal-content bg-white dark:bg-dark-surface w-full max-w-3xl rounded-t-lg shadow-lg flex flex-col max-h-[80vh]">
-            <div class="flex justify-between items-center p-5 border-b dark:border-dark-border">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Help & Customer Support</h2>
+        <div id="help-modal-content" class="modal-content bg-light-surface dark:bg-dark-surface w-full max-w-3xl rounded-t-lg shadow-lg flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center p-5 border-b border-light-border dark:border-dark-border">
+                <h2 class="text-2xl font-bold text-light-primary dark:text-white">Help & Customer Support</h2>
                 <button id="close-help-btn" class="text-gray-600 dark:text-gray-300"><span data-lucide="x" class="w-7 h-7"></span></button>
             </div>
             <div class="flex-1 p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div>
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h3>
+                    <h3 class="text-xl font-semibold text-light-primary dark:text-white mb-4">Frequently Asked Questions</h3>
                     <div class="space-y-4">
-                        <div class="border dark:border-dark-border rounded-lg">
-                            <button class="accordion-button flex justify-between items-center w-full p-4"><span class="font-medium text-gray-900 dark:text-white">What is your return policy?</span><span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-gray-500 dark:text-dark-secondary transition-transform"></span></button>
-                            <div class="accordion-content px-4 pb-4"><p class="text-gray-600 dark:text-dark-secondary">We offer a 30-day return policy...</p></div>
+                        <div class="border border-light-border dark:border-dark-border rounded-lg">
+                            <button class="accordion-button flex justify-between items-center w-full p-4"><span class="font-medium text-light-primary dark:text-white">What is your return policy?</span><span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-light-secondary dark:text-dark-secondary transition-transform"></span></button>
+                            <div class="accordion-content px-4 pb-4"><p class="text-light-secondary dark:text-dark-secondary">We offer a 30-day return policy...</p></div>
                         </div>
-                        <div class="border dark:border-dark-border rounded-lg">
-                             <button class="accordion-button flex justify-between items-center w-full p-4"><span class="font-medium text-gray-900 dark:text-white">What does "Pristine" condition mean?</span><span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-gray-500 dark:text-dark-secondary transition-transform"></span></button>
-                            <div class="accordion-content px-4 pb-4"><p class="text-gray-600 dark:text-dark-secondary">"Pristine" means the device is in like-new condition...</p></div>
+                        <div class="border border-light-border dark:border-dark-border rounded-lg">
+                             <button class="accordion-button flex justify-between items-center w-full p-4"><span class="font-medium text-light-primary dark:text-white">What does "Pristine" condition mean?</span><span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-light-secondary dark:text-dark-secondary transition-transform"></span></button>
+                            <div class="accordion-content px-4 pb-4"><p class="text-light-secondary dark:text-dark-secondary">"Pristine" means the device is in like-new condition...</p></div>
                         </div>
-                        <div class="border dark:border-dark-border rounded-lg">
-                            <button class="accordion-button flex justify-between items-center w-full p-4"><span class="font-medium text-gray-900 dark:text-white">Is there a warranty?</span><span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-gray-500 dark:text-dark-secondary transition-transform"></span></button>
-                            <div class="accordion-content px-4 pb-4"><p class="text-gray-600 dark:text-dark-secondary">Yes! All our refurbished products come with a 12-month warranty...</p></div>
+                        <div class="border border-light-border dark:border-dark-border rounded-lg">
+                            <button class="accordion-button flex justify-between items-center w-full p-4"><span class="font-medium text-light-primary dark:text-white">Is there a warranty?</span><span data-lucide="chevron-down" class="accordion-icon w-5 h-5 text-light-secondary dark:text-dark-secondary transition-transform"></span></button>
+                            <div class="accordion-content px-4 pb-4"><p class="text-light-secondary dark:text-dark-secondary">Yes! All our refurbished products come with a 12-month warranty...</p></div>
                         </div>
                     </div>
                 </div>
                 <div>
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Contact Us</h3>
+                    <h3 class="text-xl font-semibold text-light-primary dark:text-white mb-4">Contact Us</h3>
                     <form id="help-contact-form" class="space-y-4">
-                        <div><label for="contact-name" class="block text-sm font-medium text-gray-700 dark:text-dark-secondary">Your Name</label><input type="text" id="contact-name" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></div>
-                        <div><label for="contact-email" class="block text-sm font-medium text-gray-700 dark:text-dark-secondary">Your Email</label><input type="email" id="contact-email" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></div>
-                        <div><label for="contact-message" class="block text-sm font-medium text-gray-700 dark:text-dark-secondary">Message</label><textarea id="contact-message" rows="4" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea></div>
+                        <div><label for="contact-name" class="block text-sm font-medium text-light-secondary dark:text-dark-secondary">Your Name</label><input type="text" id="contact-name" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border border-light-border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-light-primary dark:text-dark-primary"></div>
+                        <div><label for="contact-email" class="block text-sm font-medium text-light-secondary dark:text-dark-secondary">Your Email</label><input type="email" id="contact-email" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border border-light-border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-light-primary dark:text-dark-primary"></div>
+                        <div><label for="contact-message" class="block text-sm font-medium text-light-secondary dark:text-dark-secondary">Message</label><textarea id="contact-message" rows="4" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-dark-mode border border-light-border dark:border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-light-primary dark:text-dark-primary"></textarea></div>
                         <button type="submit" class="w-full py-2 px-4 rounded-lg cream-bg font-bold transition-all duration-300 transform hover:scale-105">Send Message</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
+    <!-- Product Detail Modal -->
     <div id="product-detail-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-75 z-[55] flex justify-center items-center p-4 opacity-0 pointer-events-none">
-        <div id="product-detail-modal-content" class="modal-content bg-white dark:bg-dark-surface w-full max-w-3xl rounded-lg shadow-lg flex flex-col md:flex-row max-h-[90vh]">
+        <div id="product-detail-modal-content" class="modal-content bg-light-surface dark:bg-dark-surface w-full max-w-3xl rounded-lg shadow-lg flex flex-col md:flex-row max-h-[90vh]">
             <button id="close-detail-btn" class="absolute -top-3 -right-3 text-white bg-black dark:bg-white dark:text-black rounded-full p-1 z-10"><span data-lucide="x" class="w-6 h-6"></span></button>
             <div class="w-full md:w-1/2"><img id="detail-img" src="" alt="Product Image" class="w-full h-64 md:h-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-t-none"></div>
             <div class="w-full md:w-1/2 flex flex-col p-6 overflow-y-auto">
-                <h2 id="detail-name" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Product Name</h2>
+                <h2 id="detail-name" class="text-3xl font-bold text-light-primary dark:text-white mb-2">Product Name</h2>
                 <span id="detail-condition-badge" class="text-sm font-medium px-3 py-1 rounded-full self-start mb-4"></span>
-                <p id="detail-desc" class="text-gray-600 dark:text-dark-secondary mb-4"></p>
-                <div class="border-y dark:border-dark-border py-4 mb-4 space-y-3">
-                    <div class="flex justify-between"><span class="text-gray-500 dark:text-dark-secondary">Condition:</span><span id="detail-condition" class="font-medium text-gray-900 dark:text-white"></span></div>
-                    <div class="flex justify-between"><span class="text-gray-500 dark:text-dark-secondary">Usage:</span><span id="detail-usage" class="font-medium text-gray-900 dark:text-white"></span></div>
+                <p id="detail-desc" class="text-light-secondary dark:text-dark-secondary mb-4"></p>
+                <div class="border-y border-light-border dark:border-dark-border py-4 mb-4 space-y-3">
+                    <div class="flex justify-between"><span class="text-light-secondary dark:text-dark-secondary">Condition:</span><span id="detail-condition" class="font-medium text-light-primary dark:text-white"></span></div>
+                    <div class="flex justify-between"><span class="text-light-secondary dark:text-dark-secondary">Usage:</span><span id="detail-usage" class="font-medium text-light-primary dark:text-white"></span></div>
                 </div>
                 <div class="mb-4">
-                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Refurbished Notes:</h4>
-                    <p id="detail-notes" class="text-gray-600 dark:text-dark-secondary text-sm"></p>
+                    <h4 class="text-lg font-semibold text-light-primary dark:text-white mb-2">Refurbished Notes:</h4>
+                    <p id="detail-notes" class="text-light-secondary dark:text-dark-secondary text-sm"></p>
                 </div>
                 <div class="mt-auto">
-                    <span class="text-3xl font-extrabold text-light-mode-black dark:text-dark-mode-cream mb-4 block">$<span id="detail-price">0.00</span></span>
+                    <span class="text-3xl font-extrabold text-light-primary dark:text-dark-mode-cream mb-4 block">$<span id="detail-price">0.00</span></span>
                     <button id="detail-add-to-cart-btn" class="w-full py-3 rounded-lg cream-bg text-lg font-bold transition-all duration-300 transform hover:scale-105">Add to Cart</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Fixed JavaScript with corrected API paths -->
+    <!-- JavaScript - Updated with fixed session handling -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // API Configuration - FIXED PATHS
-            const API_BASE = './api'; // Use relative paths for both local and AWS
-            
-            // Elements
-            const productListEl = document.getElementById("product-list");
-            const cartButton = document.getElementById("cart-button");
-            const cartModal = document.getElementById("cart-modal");
-            const closeCartBtn = document.getElementById("close-cart-btn");
-            const cartItemsContainer = document.getElementById("cart-items-container");
-            const cartCountEl = document.getElementById("cart-count");
-            const cartSubtotalEl = document.getElementById("cart-subtotal");
-            const emptyCartMsg = document.getElementById("empty-cart-msg");
-            const checkoutBtn = document.getElementById("checkout-btn");
-            const toastEl = document.getElementById("toast");
-            const darkModeToggle = document.getElementById("dark-mode-toggle");
-            const searchBar = document.getElementById("search-bar");
-            const loadingProductsEl = document.getElementById("loading-products");
-            const helpModal = document.getElementById("help-modal");
-            const closeHelpBtn = document.getElementById("close-help-btn");
-            const customerServiceLink = document.getElementById("customer-service-link");
-            const footerHelpLink = document.getElementById("footer-help-link");
-            const helpContactForm = document.getElementById("help-contact-form");
-            const productDetailModal = document.getElementById("product-detail-modal");
-            const closeDetailBtn = document.getElementById("close-detail-btn");
-            const detailImg = document.getElementById("detail-img");
-            const detailName = document.getElementById("detail-name");
-            const detailConditionBadge = document.getElementById("detail-condition-badge");
-            const detailDesc = document.getElementById("detail-desc");
-            const detailCondition = document.getElementById("detail-condition");
-            const detailUsage = document.getElementById("detail-usage");
-            const detailNotes = document.getElementById("detail-notes");
-            const detailPrice = document.getElementById("detail-price");
-            const detailAddToCartBtn = document.getElementById("detail-add-to-cart-btn");
-            const accountSection = document.getElementById("account-section");
-            const userSection = document.getElementById("user-section");
-            const usernameDisplay = document.getElementById("username-display");
-            const logoutButton = document.getElementById("logout-button");
+            const productListEl = document.getElementById("product-list"),
+                  cartButton = document.getElementById("cart-button"),
+                  cartModal = document.getElementById("cart-modal"),
+                  closeCartBtn = document.getElementById("close-cart-btn"),
+                  cartItemsContainer = document.getElementById("cart-items-container"),
+                  cartCountEl = document.getElementById("cart-count"),
+                  cartSubtotalEl = document.getElementById("cart-subtotal"),
+                  emptyCartMsg = document.getElementById("empty-cart-msg"),
+                  checkoutBtn = document.getElementById("checkout-btn"),
+                  toastEl = document.getElementById("toast"),
+                  darkModeToggle = document.getElementById("dark-mode-toggle"),
+                  searchBar = document.getElementById("search-bar"),
+                  loadingProductsEl = document.getElementById("loading-products"),
+                  helpModal = document.getElementById("help-modal"),
+                  closeHelpBtn = document.getElementById("close-help-btn"),
+                  customerServiceLink = document.getElementById("customer-service-link"),
+                  footerHelpLink = document.getElementById("footer-help-link"),
+                  helpContactForm = document.getElementById("help-contact-form"),
+                  productDetailModal = document.getElementById("product-detail-modal"),
+                  closeDetailBtn = document.getElementById("close-detail-btn"),
+                  detailImg = document.getElementById("detail-img"),
+                  detailName = document.getElementById("detail-name"),
+                  detailConditionBadge = document.getElementById("detail-condition-badge"),
+                  detailDesc = document.getElementById("detail-desc"),
+                  detailCondition = document.getElementById("detail-condition"),
+                  detailUsage = document.getElementById("detail-usage"),
+                  detailNotes = document.getElementById("detail-notes"),
+                  detailPrice = document.getElementById("detail-price"),
+                  detailAddToCartBtn = document.getElementById("detail-add-to-cart-btn"),
+                  accountSection = document.getElementById("account-section"),
+                  userSection = document.getElementById("user-section"),
+                  usernameDisplay = document.getElementById("username-display"),
+                  logoutButton = document.getElementById("logout-button");
 
-            // State
-            let cart = [];
-            let allProducts = [];
-            let currentUser = null;
+            let cart = [], allProducts = [], currentUser = null;
 
-            // Dark Mode
-            localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches) ? document.documentElement.classList.add("dark") : document.documentElement.classList.remove("dark");
-            
-            darkModeToggle.addEventListener("click", () => {
-                document.documentElement.classList.toggle("dark");
-                localStorage.theme = document.documentElement.classList.contains("dark") ? "dark" : "light";
-                setTimeout(renderIcons, 50);
-            });
-
-            // Icon Rendering
             function renderIcons() {
                 if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
                     try {
@@ -305,19 +309,25 @@
                 }
             }
 
-            // Check Session - FIXED PATH
+            // UPDATED: Fixed session checking with credentials
             async function checkLoginStatus() {
                 try {
-                    const response = await fetch(`${API_BASE}/check_session.php`);
-                    const contentType = response.headers.get("content-type");
+                    const response = await fetch("/gadgethut-store/api/check_session.php", {
+                        credentials: 'include' // Important for session cookies
+                    });
                     
-                    if (!response.ok || !contentType || !contentType.includes("application/json")) {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
                         const text = await response.text();
-                        console.error(`Check session failed (${response.status}): ${text.substring(0, 100)}...`);
-                        throw new Error("Server error checking session.");
+                        throw new Error(`Expected JSON but got: ${contentType}. Response: ${text.substring(0, 100)}...`);
                     }
                     
                     const data = await response.json();
+                    
                     if (data.loggedIn && data.username) {
                         currentUser = data;
                         showLoggedInUI(data.username);
@@ -334,7 +344,6 @@
                 }
             }
 
-            // Update UI based on Login
             function showLoggedInUI(username) {
                 accountSection.classList.add("hidden");
                 userSection.classList.remove("hidden");
@@ -351,23 +360,21 @@
                 renderIcons();
             }
 
-            // Handle Logout - FIXED PATH
             async function handleLogout() {
                 try {
-                    const response = await fetch(`${API_BASE}/logout.php`, {
-                        method: "POST"
+                    const response = await fetch("/gadgethut-store/api/logout.php", {
+                        method: "POST",
+                        credentials: 'include'
                     });
-                    const contentType = response.headers.get("content-type");
                     
+                    const contentType = response.headers.get("content-type");
                     if (!response.ok || !contentType || !contentType.includes("application/json")) {
                         const text = await response.text();
                         throw new Error(`Logout server error (${response.status}): ${text.substring(0, 100)}...`);
                     }
                     
                     const data = await response.json();
-                    if (!data.success) {
-                        throw new Error("Logout failed on server.");
-                    }
+                    if (!data.success) throw new Error("Logout failed on server.");
                     
                     currentUser = null;
                     showLoggedOutUI();
@@ -378,106 +385,84 @@
                 }
             }
 
-            // Product Loading - FIXED PATH
             async function fetchProducts() {
-                if (loadingProductsEl) {
-                    loadingProductsEl.style.display = "block";
-                }
+                if (loadingProductsEl) loadingProductsEl.style.display = "block";
                 productListEl.innerHTML = "";
                 
                 try {
-                    const response = await fetch(`${API_BASE}/products.php`);
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok (status: ${response.status})`);
-                    }
+                    const response = await fetch("/gadgethut-store/api/products.php");
+                    if (!response.ok) throw new Error(`Network response was not ok (status: ${response.status})`);
                     
                     const contentType = response.headers.get("content-type");
                     if (!contentType || !contentType.includes("application/json")) {
                         const text = await response.text();
-                        throw new Error(`Expected JSON but received: ${contentType}. Response: ${text.substring(0, 100)}...`);
+                        throw new Error(`Expected JSON but received: ${text}. Response: ${text.substring(0, 100)}...`);
                     }
                     
                     const products = await response.json();
-                    if (products.error) {
-                        throw new Error(products.error);
-                    }
+                    if (products.error) throw new Error(products.error);
                     
                     allProducts = products;
                     displayProducts(allProducts);
-                    
-                    if (loadingProductsEl) {
-                        loadingProductsEl.style.display = "none";
-                    }
+                    if (loadingProductsEl) loadingProductsEl.style.display = "none";
                     renderIcons();
                 } catch (error) {
                     console.error("Failed to fetch products:", error);
-                    if (loadingProductsEl) {
-                        loadingProductsEl.style.display = "none";
-                    }
+                    if (loadingProductsEl) loadingProductsEl.style.display = "none";
                     productListEl.innerHTML = `<p class="text-red-500 col-span-full text-center">Failed to load products. ${error.message}. Please check the API path and database connection.</p>`;
                 }
             }
 
-            // Display Products
             function displayProducts(products) {
                 productListEl.innerHTML = "";
-                
                 if (products.length === 0) {
-                    productListEl.innerHTML = '<p class="text-gray-500 dark:text-dark-secondary col-span-full text-center">No products found.</p>';
-                    return;
-                }
-                
-                products.forEach(product => {
-                    const rating = parseFloat(product.rating);
-                    const normalizedRating = isNaN(rating) ? 0 : rating;
-                    const displayRating = isNaN(rating) ? "N/A" : rating.toFixed(1);
-                    
-                    const productCard = document.createElement("div");
-                    productCard.className = "product-card bg-white dark:bg-dark-surface rounded-lg shadow-lg overflow-hidden flex flex-col cream-border";
-                    
-                    productCard.innerHTML = `
-                        <div class="relative cursor-pointer product-details-trigger" data-id="${product.id}">
-                             <span class="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">${product.condition}</span>
-                             <img src="${product.image_url}" alt="${product.name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/333/fff?text=${product.name.replace(" ", "+")}'">
-                         </div>
-                         <div class="p-5 flex flex-col flex-1">
-                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 cursor-pointer product-details-trigger" data-id="${product.id}">${product.name}</h3>
-                             <p class="text-gray-600 dark:text-dark-secondary text-sm mb-4 flex-1">${product.description}</p>
-                             <div class="flex items-center mb-4">
-                                 ${[...Array(5)].map((_, i) => 
-                                     `<svg class="w-5 h-5 ${i < Math.floor(normalizedRating) ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}" fill="currentColor" viewBox="0 0 20 20">
-                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.83 5.625h5.914c.969 0 1.371 1.24.588 1.81l-4.784 3.475 1.83 5.625c.3.921-.755 1.688-1.54 1.18l-4.784-3.475-4.784 3.475c-.784.508-1.84-.259-1.54-1.18l1.83-5.625-4.784-3.475c-.783-.57-.38-1.81.588-1.81h5.914l1.83-5.625z" />
-                                     </svg>`
-                                 ).join("")}
-                                 <span class="ml-2 text-sm text-gray-500 dark:text-dark-secondary">${displayRating}</span>
-                             </div>
-                             <div class="flex justify-between items-center">
-                                 <span class="text-2xl font-extrabold text-light-mode-black dark:text-dark-mode-cream">$${product.price}</span>
-                                 <button class="add-to-cart-btn px-4 py-2 rounded-full cream-bg transition-all duration-300 transform hover:scale-105" data-id="${product.id}">Add to Cart</button>
-                             </div>
-                         </div>`;
-                    
-                    productListEl.appendChild(productCard);
-                });
-                
-                // Intersection Observer for animations
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add("is-visible");
-                            observer.unobserve(entry.target);
-                        }
+                    productListEl.innerHTML = '<p class="text-light-secondary dark:text-dark-secondary col-span-full text-center">No products found.</p>';
+                } else {
+                    products.forEach(product => {
+                        const rating = parseFloat(product.rating);
+                        const ratingValue = isNaN(rating) ? 0 : rating;
+                        const ratingDisplay = isNaN(rating) ? "N/A" : rating.toFixed(1);
+                        
+                        const productCard = document.createElement("div");
+                        productCard.className = "product-card bg-light-surface dark:bg-dark-surface rounded-lg shadow-lg overflow-hidden flex flex-col border border-light-border dark:border-dark-border";
+                        productCard.innerHTML = `
+                            <div class="relative cursor-pointer product-details-trigger" data-id="${product.id}">
+                                <span class="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">${product.condition}</span>
+                                <img src="${product.image_url}" alt="${product.name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/cccccc/ffffff?text=${product.name.replace(" ", "+")}'">
+                            </div>
+                            <div class="p-5 flex flex-col flex-1">
+                                <h3 class="text-xl font-bold text-light-primary dark:text-white mb-2 cursor-pointer product-details-trigger" data-id="${product.id}">${product.name}</h3>
+                                <p class="text-light-secondary dark:text-dark-secondary text-sm mb-4 flex-1">${product.description}</p>
+                                <div class="flex items-center mb-4">
+                                    ${[...Array(5)].map((_, i) => `<svg class="w-5 h-5 ${i < Math.floor(ratingValue) ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.83 5.625h5.914c.969 0 1.371 1.24.588 1.81l-4.784 3.475 1.83 5.625c.3.921-.755 1.688-1.54 1.18l-4.784-3.475-4.784 3.475c-.784.508-1.84-.259-1.54-1.18l1.83-5.625-4.784-3.475c-.783-.57-.38-1.81.588-1.81h5.914l1.83-5.625z" /></svg>`).join("")}
+                                    <span class="ml-2 text-sm text-light-secondary dark:text-dark-secondary">${ratingDisplay}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-2xl font-extrabold text-light-primary dark:text-dark-mode-cream">$${product.price}</span>
+                                    <button class="add-to-cart-btn px-4 py-2 rounded-full cream-bg transition-all duration-300 transform hover:scale-105" data-id="${product.id}">Add to Cart</button>
+                                </div>
+                            </div>`;
+                        productListEl.appendChild(productCard);
                     });
-                }, { threshold: 0.1 });
-                
-                document.querySelectorAll(".product-card").forEach(card => {
-                    observer.observe(card);
-                });
-                
-                renderIcons();
+
+                    // Intersection Observer for animation
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add("is-visible");
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.1 });
+
+                    document.querySelectorAll(".product-card").forEach(card => {
+                        observer.observe(card);
+                    });
+
+                    renderIcons();
+                }
             }
 
-            // Cart Functionality
             function openCart() {
                 cartModal.classList.remove("hidden");
                 renderIcons();
@@ -489,39 +474,34 @@
 
             function updateCart() {
                 cartItemsContainer.innerHTML = "";
-                
                 if (cart.length === 0) {
                     cartItemsContainer.appendChild(emptyCartMsg);
                     emptyCartMsg.style.display = "block";
                 } else {
                     emptyCartMsg.style.display = "none";
-                    
                     cart.forEach(item => {
                         const cartItem = document.createElement("div");
-                        cartItem.className = "flex items-center justify-between py-4 border-b dark:border-dark-border";
+                        cartItem.className = "flex items-center justify-between py-4 border-b border-light-border dark:border-dark-border";
                         cartItem.innerHTML = `
                             <div class="flex items-center space-x-4">
                                 <img src="${item.image_url}" alt="${item.name}" class="w-20 h-20 object-cover rounded-lg" onerror="this.src='https://placehold.co/100x100/333/fff?text=${item.name.replace(" ", "+")}'">
                                 <div>
-                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${item.name}</h4>
-                                    <span class="text-gray-500 dark:text-dark-secondary">$${item.price}</span>
+                                    <h4 class="text-lg font-semibold text-light-primary dark:text-white">${item.name}</h4>
+                                    <span class="text-light-secondary dark:text-dark-secondary">$${item.price}</span>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
-                                <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${item.id}" data-change="-1">-</button>
-                                <span class="text-lg text-gray-900 dark:text-white">${item.quantity}</span>
-                                <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${item.id}" data-change="1">+</button>
-                                <button class="remove-from-cart text-red-500 hover:text-red-700" data-id="${item.id}">
-                                    <span data-lucide="trash-2" class="w-5 h-5"></span>
-                                </button>
+                                <button class="quantity-change text-lg font-bold text-light-secondary dark:text-dark-secondary" data-id="${item.id}" data-change="-1">-</button>
+                                <span class="text-lg text-light-primary dark:text-white">${item.quantity}</span>
+                                <button class="quantity-change text-lg font-bold text-light-secondary dark:text-dark-secondary" data-id="${item.id}" data-change="1">+</button>
+                                <button class="remove-from-cart text-red-500 hover:text-red-700" data-id="${item.id}"><span data-lucide="trash-2" class="w-5 h-5"></span></button>
                             </div>`;
                         cartItemsContainer.appendChild(cartItem);
                     });
-                    
                     renderIcons();
                 }
-                
-                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+                const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
                 cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
                 
                 const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -535,17 +515,14 @@
                     showCustomAlert("Error: Product not found.", false);
                     return;
                 }
-                
+
                 const existingItem = cart.find(item => item.id == productId);
                 if (existingItem) {
                     existingItem.quantity++;
                 } else {
-                    cart.push({
-                        ...product,
-                        quantity: 1
-                    });
+                    cart.push({ ...product, quantity: 1 });
                 }
-                
+
                 updateCart();
                 showCustomAlert(`${product.name} added to cart!`, true);
             }
@@ -566,55 +543,52 @@
                 updateCart();
             }
 
-            // Checkout - FIXED PATH
             async function handleCheckout() {
                 if (!currentUser || !currentUser.loggedIn) {
                     showCustomAlert("Please log in to proceed to checkout.", false);
                     return;
                 }
-                
+
                 if (cart.length === 0) {
                     showCustomAlert("Your cart is empty!", false);
                     return;
                 }
-                
+
                 const orderData = cart.map(item => ({
                     id: item.id,
                     quantity: item.quantity,
                     price: item.price
                 }));
-                
+
                 try {
-                    const response = await fetch(`${API_BASE}/create_order.php`, {
+                    const response = await fetch("/gadgethut-store/api/create_order.php", {
                         method: "POST",
                         headers: {
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
                         },
+                        credentials: 'include',
                         body: JSON.stringify({ cart: orderData })
                     });
-                    
+
                     const contentType = response.headers.get("content-type");
                     if (!response.ok || !contentType || !contentType.includes("application/json")) {
                         const text = await response.text();
                         throw new Error(`Server error (${response.status}): ${text.substring(0, 100)}...`);
                     }
-                    
-                    const data = await response.json();
-                    if (!data.success) {
-                        throw new Error(data.error || "Failed to place order.");
-                    }
-                    
+
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.error || "Failed to place order.");
+
                     cart = [];
                     updateCart();
                     closeCart();
-                    showCustomAlert("Thanks for shopping!", true);
+                    showCustomAlert("Order placed successfully! Thanks for shopping!", true);
                 } catch (error) {
                     console.error("Checkout failed:", error);
                     showCustomAlert(`Checkout failed: ${error.message}`, false);
                 }
             }
 
-            // Live Search
             function handleSearch() {
                 const searchTerm = searchBar.value.toLowerCase();
                 const filteredProducts = allProducts.filter(product => 
@@ -625,7 +599,6 @@
                 displayProducts(filteredProducts);
             }
 
-            // Help Modal
             function openHelpModal(e) {
                 e.preventDefault();
                 helpModal.classList.remove("hidden");
@@ -633,4 +606,140 @@
                 renderIcons();
             }
 
-            function closeHelpModal
+            function closeHelpModal() {
+                helpModal.classList.remove("is-open");
+                setTimeout(() => helpModal.classList.add("hidden"), 300);
+            }
+
+            async function openProductDetailModal(productId) {
+                try {
+                    const response = await fetch(`/gadgethut-store/api/get_product.php?id=${productId}`);
+                    if (!response.ok) throw new Error("Failed to fetch product details.");
+                    
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        const text = await response.text();
+                        throw new Error(`Expected JSON: ${text.substring(0, 100)}...`);
+                    }
+                    
+                    const product = await response.json();
+                    if (product.error) throw new Error(product.error);
+
+                    detailImg.src = product.image_url;
+                    detailImg.alt = product.name;
+                    detailName.textContent = product.name;
+                    detailDesc.textContent = product.description;
+                    detailCondition.textContent = product.condition;
+                    detailUsage.textContent = product.usage_duration;
+                    detailNotes.textContent = product.condition_notes || "No specific notes.";
+                    detailPrice.textContent = product.price;
+                    detailAddToCartBtn.dataset.id = product.id;
+
+                    detailConditionBadge.textContent = product.condition;
+                    detailConditionBadge.className = "text-sm font-medium px-3 py-1 rounded-full self-start mb-4";
+                    if (product.condition === "Pristine") {
+                        detailConditionBadge.classList.add("bg-green-100", "text-green-800");
+                    } else if (product.condition === "Very Good") {
+                        detailConditionBadge.classList.add("bg-blue-100", "text-blue-800");
+                    } else {
+                        detailConditionBadge.classList.add("bg-yellow-100", "text-yellow-800");
+                    }
+
+                    productDetailModal.classList.remove("hidden");
+                    setTimeout(() => productDetailModal.classList.add("is-open"), 10);
+                    renderIcons();
+                } catch (error) {
+                    console.error("Error opening product detail:", error);
+                    showCustomAlert(error.message, false);
+                }
+            }
+
+            function closeProductDetailModal() {
+                productDetailModal.classList.remove("is-open");
+                setTimeout(() => productDetailModal.classList.add("hidden"), 300);
+            }
+
+            function showCustomAlert(message, isSuccess = true) {
+                toastEl.textContent = message;
+                toastEl.classList.remove("hidden", "bg-green-500", "bg-red-500");
+                toastEl.classList.add(isSuccess ? "bg-green-500" : "bg-red-500");
+                
+                if (toastEl.timeoutId) clearTimeout(toastEl.timeoutId);
+                toastEl.timeoutId = setTimeout(() => {
+                    toastEl.classList.add("hidden");
+                }, 4000);
+            }
+
+            // Initialize dark mode
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            // Event Listeners
+            darkModeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                setTimeout(renderIcons, 50);
+            });
+
+            cartButton.addEventListener('click', openCart);
+            closeCartBtn.addEventListener('click', closeCart);
+            checkoutBtn.addEventListener('click', handleCheckout);
+            searchBar.addEventListener('input', handleSearch);
+            customerServiceLink.addEventListener('click', openHelpModal);
+            footerHelpLink.addEventListener('click', openHelpModal);
+            closeHelpBtn.addEventListener('click', closeHelpModal);
+            helpModal.addEventListener('click', e => { if (e.target === helpModal) closeHelpModal(); });
+            helpContactForm.addEventListener('submit', e => { e.preventDefault(); closeHelpModal(); showCustomAlert("Support message sent!", true); helpContactForm.reset(); });
+            closeDetailBtn.addEventListener('click', closeProductDetailModal);
+            productDetailModal.addEventListener('click', e => { if (e.target === productDetailModal) closeProductDetailModal(); });
+            detailAddToCartBtn.addEventListener('click', e => { addToCart(e.target.dataset.id); closeProductDetailModal(); });
+            logoutButton.addEventListener('click', handleLogout);
+
+            // Accordion functionality
+            document.querySelectorAll('.accordion-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    button.classList.toggle('open');
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            });
+
+            // Event delegation for dynamic elements
+            document.body.addEventListener('click', e => {
+                if (e.target.closest('.add-to-cart-btn')) {
+                    addToCart(e.target.closest('.add-to-cart-btn').dataset.id);
+                }
+                if (e.target.closest('.quantity-change')) {
+                    changeQuantity(
+                        e.target.closest('.quantity-change').dataset.id,
+                        parseInt(e.target.closest('.quantity-change').dataset.change)
+                    );
+                }
+                if (e.target.closest('.remove-from-cart')) {
+                    removeFromCart(e.target.closest('.remove-from-cart').dataset.id);
+                }
+                if (e.target.closest('.product-details-trigger')) {
+                    openProductDetailModal(e.target.closest('.product-details-trigger').dataset.id);
+                }
+            });
+
+            // Initialize app
+            checkLoginStatus();
+            setTimeout(() => {
+                fetchProducts();
+                renderIcons();
+            }, 50);
+        });
+    </script>
+    
+    <!-- Lucide Icons Script -->
+    <script src="https://unpkg.com/lucide@latest"></script> 
+</body>
+</html>
