@@ -6,14 +6,11 @@
     <title>GadgetHut - Certified Refurbished</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons - MOVED TO BOTTOM OF BODY -->
-    <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Styles remain the same */
         .dark .bg-dark-mode { background-color: #121212; }
         .dark .bg-dark-surface { background-color: #1a1a1a; }
         .dark .text-dark-primary { color: #E0E0E0; }
@@ -126,7 +123,6 @@
                 <h3 class="text-lg font-semibold text-white mb-4">Get to Know Us</h3>
                 <ul class="space-y-2">
                     <li><a href="#" class="hover:text-white hover:underline">About GadgetHut</a></li>
-                    <!-- REMOVED Admin Panel Link -->
                     <li><a href="#" class="hover:text-white hover:underline">Blog</a></li>
                 </ul>
             </div>
@@ -160,8 +156,7 @@
         </div>
     </footer>
 
-    <!-- Modals (Cart, Toast, Help, Product Detail) remain the same as v4 -->
-    <!-- Shopping Cart Modal -->
+    <!-- Modals -->
     <div id="cart-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-end">
         <div class="bg-white dark:bg-dark-surface w-full max-w-md h-full flex flex-col">
             <div class="flex justify-between items-center p-5 border-b dark:border-dark-border">
@@ -175,9 +170,9 @@
             </div>
         </div>
     </div>
-    <!-- Toast Notification -->
+
     <div id="toast" class="hidden fixed bottom-10 right-10 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg text-lg z-[60]"></div>
-    <!-- Help Modal -->
+
     <div id="help-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-end opacity-0 pointer-events-none">
         <div id="help-modal-content" class="modal-content bg-white dark:bg-dark-surface w-full max-w-3xl rounded-t-lg shadow-lg flex flex-col max-h-[80vh]">
             <div class="flex justify-between items-center p-5 border-b dark:border-dark-border">
@@ -214,7 +209,7 @@
             </div>
         </div>
     </div>
-    <!-- Product Detail Modal -->
+
     <div id="product-detail-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-75 z-[55] flex justify-center items-center p-4 opacity-0 pointer-events-none">
         <div id="product-detail-modal-content" class="modal-content bg-white dark:bg-dark-surface w-full max-w-3xl rounded-lg shadow-lg flex flex-col md:flex-row max-h-[90vh]">
             <button id="close-detail-btn" class="absolute -top-3 -right-3 text-white bg-black dark:bg-white dark:text-black rounded-full p-1 z-10"><span data-lucide="x" class="w-6 h-6"></span></button>
@@ -239,67 +234,403 @@
         </div>
     </div>
 
-    <!-- JavaScript (Same as v4.0, including login/logout logic) -->
+    <!-- Fixed JavaScript with corrected API paths -->
     <script>
-         document.addEventListener('DOMContentLoaded', () => {
-            // Elements (same as v4)
-            const productListEl=document.getElementById("product-list"),cartButton=document.getElementById("cart-button"),cartModal=document.getElementById("cart-modal"),closeCartBtn=document.getElementById("close-cart-btn"),cartItemsContainer=document.getElementById("cart-items-container"),cartCountEl=document.getElementById("cart-count"),cartSubtotalEl=document.getElementById("cart-subtotal"),emptyCartMsg=document.getElementById("empty-cart-msg"),checkoutBtn=document.getElementById("checkout-btn"),toastEl=document.getElementById("toast"),darkModeToggle=document.getElementById("dark-mode-toggle"),searchBar=document.getElementById("search-bar"),loadingProductsEl=document.getElementById("loading-products"),helpModal=document.getElementById("help-modal"),closeHelpBtn=document.getElementById("close-help-btn"),customerServiceLink=document.getElementById("customer-service-link"),footerHelpLink=document.getElementById("footer-help-link"),helpContactForm=document.getElementById("help-contact-form"),productDetailModal=document.getElementById("product-detail-modal"),closeDetailBtn=document.getElementById("close-detail-btn"),detailImg=document.getElementById("detail-img"),detailName=document.getElementById("detail-name"),detailConditionBadge=document.getElementById("detail-condition-badge"),detailDesc=document.getElementById("detail-desc"),detailCondition=document.getElementById("detail-condition"),detailUsage=document.getElementById("detail-usage"),detailNotes=document.getElementById("detail-notes"),detailPrice=document.getElementById("detail-price"),detailAddToCartBtn=document.getElementById("detail-add-to-cart-btn"),accountSection=document.getElementById("account-section"),userSection=document.getElementById("user-section"),usernameDisplay=document.getElementById("username-display"),logoutButton=document.getElementById("logout-button");
+        document.addEventListener('DOMContentLoaded', () => {
+            // API Configuration - FIXED PATHS
+            const API_BASE = './api'; // Use relative paths for both local and AWS
+            
+            // Elements
+            const productListEl = document.getElementById("product-list");
+            const cartButton = document.getElementById("cart-button");
+            const cartModal = document.getElementById("cart-modal");
+            const closeCartBtn = document.getElementById("close-cart-btn");
+            const cartItemsContainer = document.getElementById("cart-items-container");
+            const cartCountEl = document.getElementById("cart-count");
+            const cartSubtotalEl = document.getElementById("cart-subtotal");
+            const emptyCartMsg = document.getElementById("empty-cart-msg");
+            const checkoutBtn = document.getElementById("checkout-btn");
+            const toastEl = document.getElementById("toast");
+            const darkModeToggle = document.getElementById("dark-mode-toggle");
+            const searchBar = document.getElementById("search-bar");
+            const loadingProductsEl = document.getElementById("loading-products");
+            const helpModal = document.getElementById("help-modal");
+            const closeHelpBtn = document.getElementById("close-help-btn");
+            const customerServiceLink = document.getElementById("customer-service-link");
+            const footerHelpLink = document.getElementById("footer-help-link");
+            const helpContactForm = document.getElementById("help-contact-form");
+            const productDetailModal = document.getElementById("product-detail-modal");
+            const closeDetailBtn = document.getElementById("close-detail-btn");
+            const detailImg = document.getElementById("detail-img");
+            const detailName = document.getElementById("detail-name");
+            const detailConditionBadge = document.getElementById("detail-condition-badge");
+            const detailDesc = document.getElementById("detail-desc");
+            const detailCondition = document.getElementById("detail-condition");
+            const detailUsage = document.getElementById("detail-usage");
+            const detailNotes = document.getElementById("detail-notes");
+            const detailPrice = document.getElementById("detail-price");
+            const detailAddToCartBtn = document.getElementById("detail-add-to-cart-btn");
+            const accountSection = document.getElementById("account-section");
+            const userSection = document.getElementById("user-section");
+            const usernameDisplay = document.getElementById("username-display");
+            const logoutButton = document.getElementById("logout-button");
 
-            // State (same as v4)
-            let cart=[],allProducts=[],currentUser=null;
+            // State
+            let cart = [];
+            let allProducts = [];
+            let currentUser = null;
 
-            // Dark Mode (same as v4)
-             localStorage.theme==="dark"||!("theme"in localStorage)&&window.matchMedia("(prefers-color-scheme: dark)").matches?document.documentElement.classList.add("dark"):document.documentElement.classList.remove("dark"),darkModeToggle.addEventListener("click",()=>{document.documentElement.classList.toggle("dark"),localStorage.theme=document.documentElement.classList.contains("dark")?"dark":"light",setTimeout(renderIcons,50)});
+            // Dark Mode
+            localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches) ? document.documentElement.classList.add("dark") : document.documentElement.classList.remove("dark");
+            
+            darkModeToggle.addEventListener("click", () => {
+                document.documentElement.classList.toggle("dark");
+                localStorage.theme = document.documentElement.classList.contains("dark") ? "dark" : "light";
+                setTimeout(renderIcons, 50);
+            });
 
-            // Icon Rendering (same as v4)
-            function renderIcons(){"undefined"!=typeof lucide&&"function"==typeof lucide.createIcons?function(){try{lucide.createIcons()}catch(e){console.error("Lucide error:",e)}}():(console.warn("Lucide library not ready or createIcons not available yet."),"undefined"==typeof lucide&&setTimeout(renderIcons,200))}
+            // Icon Rendering
+            function renderIcons() {
+                if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                    try {
+                        lucide.createIcons();
+                    } catch (e) {
+                        console.error("Lucide error:", e);
+                    }
+                } else {
+                    console.warn("Lucide library not ready or createIcons not available yet.");
+                    if (typeof lucide === 'undefined') {
+                        setTimeout(renderIcons, 200);
+                    }
+                }
+            }
 
-            // Check Session (same as v4)
-             async function checkLoginStatus(){try{const e=await fetch("/gadgethut-store/api/check_session.php"),t=e.headers.get("content-type");if(!e.ok||!t||!t.includes("application/json")){const t=await e.text();throw console.error(`Check session failed (${e.status}): ${t.substring(0,100)}...`),new Error("Server error checking session.")}const n=await e.json();n.loggedIn&&n.username?(currentUser=n,showLoggedInUI(n.username)):(currentUser=null,showLoggedOutUI())}catch(e){console.error("Error checking session:",e),currentUser=null,showLoggedOutUI()}finally{setTimeout(renderIcons,50)}}
+            // Check Session - FIXED PATH
+            async function checkLoginStatus() {
+                try {
+                    const response = await fetch(`${API_BASE}/check_session.php`);
+                    const contentType = response.headers.get("content-type");
+                    
+                    if (!response.ok || !contentType || !contentType.includes("application/json")) {
+                        const text = await response.text();
+                        console.error(`Check session failed (${response.status}): ${text.substring(0, 100)}...`);
+                        throw new Error("Server error checking session.");
+                    }
+                    
+                    const data = await response.json();
+                    if (data.loggedIn && data.username) {
+                        currentUser = data;
+                        showLoggedInUI(data.username);
+                    } else {
+                        currentUser = null;
+                        showLoggedOutUI();
+                    }
+                } catch (error) {
+                    console.error("Error checking session:", error);
+                    currentUser = null;
+                    showLoggedOutUI();
+                } finally {
+                    setTimeout(renderIcons, 50);
+                }
+            }
 
-             // Update UI based on Login (same as v4)
-             function showLoggedInUI(e){accountSection.classList.add("hidden"),userSection.classList.remove("hidden"),userSection.classList.add("flex"),usernameDisplay.textContent=`Hi, ${e}`,renderIcons()}function showLoggedOutUI(){accountSection.classList.remove("hidden"),userSection.classList.add("hidden"),userSection.classList.remove("flex"),usernameDisplay.textContent="",renderIcons()}
+            // Update UI based on Login
+            function showLoggedInUI(username) {
+                accountSection.classList.add("hidden");
+                userSection.classList.remove("hidden");
+                userSection.classList.add("flex");
+                usernameDisplay.textContent = `Hi, ${username}`;
+                renderIcons();
+            }
 
-             // Handle Logout (same as v4)
-              async function handleLogout(){try{const e=await fetch("/gadgethut-store/api/logout.php",{method:"POST"}),t=e.headers.get("content-type");if(!e.ok||!t||!t.includes("application/json")){const t=await e.text();throw new Error(`Logout server error (${e.status}): ${t.substring(0,100)}...`)}const n=await e.json();if(!n.success)throw new Error("Logout failed on server.");currentUser=null,showLoggedOutUI(),showCustomAlert("Logged out successfully.",!0)}catch(e){console.error("Logout error:",e),showCustomAlert("Logout failed. Please try again.",!1)}}
+            function showLoggedOutUI() {
+                accountSection.classList.remove("hidden");
+                userSection.classList.add("hidden");
+                userSection.classList.remove("flex");
+                usernameDisplay.textContent = "";
+                renderIcons();
+            }
 
+            // Handle Logout - FIXED PATH
+            async function handleLogout() {
+                try {
+                    const response = await fetch(`${API_BASE}/logout.php`, {
+                        method: "POST"
+                    });
+                    const contentType = response.headers.get("content-type");
+                    
+                    if (!response.ok || !contentType || !contentType.includes("application/json")) {
+                        const text = await response.text();
+                        throw new Error(`Logout server error (${response.status}): ${text.substring(0, 100)}...`);
+                    }
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error("Logout failed on server.");
+                    }
+                    
+                    currentUser = null;
+                    showLoggedOutUI();
+                    showCustomAlert("Logged out successfully.", true);
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    showCustomAlert("Logout failed. Please try again.", false);
+                }
+            }
 
-            // Product Loading (same as v4)
-            async function fetchProducts(){loadingProductsEl&&(loadingProductsEl.style.display="block"),productListEl.innerHTML="";try{const e=await fetch("/gadgethut-store/api/products.php");if(!e.ok)throw new Error(`Network response was not ok (status: ${e.status})`);const t=e.headers.get("content-type");if(!t||!t.includes("application/json")){const t=await e.text();throw new Error(`Expected JSON but received: ${t}. Response: ${t.substring(0,100)}...`)}const n=await e.json();if(n.error)throw new Error(n.error);allProducts=n,displayProducts(allProducts),loadingProductsEl&&(loadingProductsEl.style.display="none"),renderIcons()}catch(e){console.error("Failed to fetch products:",e),loadingProductsEl&&(loadingProductsEl.style.display="none"),productListEl.innerHTML=`<p class="text-red-500 col-span-full text-center">Failed to load products. ${e.message}. Please check the API path and database connection.</p>`}}
+            // Product Loading - FIXED PATH
+            async function fetchProducts() {
+                if (loadingProductsEl) {
+                    loadingProductsEl.style.display = "block";
+                }
+                productListEl.innerHTML = "";
+                
+                try {
+                    const response = await fetch(`${API_BASE}/products.php`);
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok (status: ${response.status})`);
+                    }
+                    
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        const text = await response.text();
+                        throw new Error(`Expected JSON but received: ${contentType}. Response: ${text.substring(0, 100)}...`);
+                    }
+                    
+                    const products = await response.json();
+                    if (products.error) {
+                        throw new Error(products.error);
+                    }
+                    
+                    allProducts = products;
+                    displayProducts(allProducts);
+                    
+                    if (loadingProductsEl) {
+                        loadingProductsEl.style.display = "none";
+                    }
+                    renderIcons();
+                } catch (error) {
+                    console.error("Failed to fetch products:", error);
+                    if (loadingProductsEl) {
+                        loadingProductsEl.style.display = "none";
+                    }
+                    productListEl.innerHTML = `<p class="text-red-500 col-span-full text-center">Failed to load products. ${error.message}. Please check the API path and database connection.</p>`;
+                }
+            }
 
-            // Display Products (same as v4)
-            function displayProducts(e){productListEl.innerHTML="",0===e.length?productListEl.innerHTML='<p class="text-gray-500 dark:text-dark-secondary col-span-full text-center">No products found.</p>':(e.forEach(e=>{const t=parseFloat(e.rating),n=isNaN(t)?0:t,a=isNaN(t)?"N/A":t.toFixed(1),o=document.createElement("div");o.className="product-card bg-white dark:bg-dark-surface rounded-lg shadow-lg overflow-hidden flex flex-col cream-border",o.innerHTML=`\n                        <div class="relative cursor-pointer product-details-trigger" data-id="${e.id}">\n                             <span class="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">${e.condition}</span>\n                             <img src="${e.image_url}" alt="${e.name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/333/fff?text=${e.name.replace(" ","+")}'">\n                         </div>\n                         <div class="p-5 flex flex-col flex-1">\n                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 cursor-pointer product-details-trigger" data-id="${e.id}">${e.name}</h3>\n                             <p class="text-gray-600 dark:text-dark-secondary text-sm mb-4 flex-1">${e.description}</p>\n                             <div class="flex items-center mb-4">\n                                 ${[...Array(5)].map((e,t)=>`<svg class="w-5 h-5 ${t<Math.floor(n)?"text-yellow-400":"text-gray-300 dark:text-gray-600"}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.83 5.625h5.914c.969 0 1.371 1.24.588 1.81l-4.784 3.475 1.83 5.625c.3.921-.755 1.688-1.54 1.18l-4.784-3.475-4.784 3.475c-.784.508-1.84-.259-1.54-1.18l1.83-5.625-4.784-3.475c-.783-.57-.38-1.81.588-1.81h5.914l1.83-5.625z" /></svg>`).join("")}\n                                 <span class="ml-2 text-sm text-gray-500 dark:text-dark-secondary">${a}</span>\n                             </div>\n                             <div class="flex justify-between items-center">\n                                 <span class="text-2xl font-extrabold text-light-mode-black dark:text-dark-mode-cream">$${e.price}</span>\n                                 <button class="add-to-cart-btn px-4 py-2 rounded-full cream-bg transition-all duration-300 transform hover:scale-105" data-id="${e.id}">Add to Cart</button>\n                             </div>\n                         </div>`,productListEl.appendChild(o)}),function(){const e=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&(e.target.classList.add("is-visible"),e.unobserve(e.target))})},{threshold:.1});document.querySelectorAll(".product-card").forEach(t=>e.observe(t))}(),renderIcons())}
+            // Display Products
+            function displayProducts(products) {
+                productListEl.innerHTML = "";
+                
+                if (products.length === 0) {
+                    productListEl.innerHTML = '<p class="text-gray-500 dark:text-dark-secondary col-span-full text-center">No products found.</p>';
+                    return;
+                }
+                
+                products.forEach(product => {
+                    const rating = parseFloat(product.rating);
+                    const normalizedRating = isNaN(rating) ? 0 : rating;
+                    const displayRating = isNaN(rating) ? "N/A" : rating.toFixed(1);
+                    
+                    const productCard = document.createElement("div");
+                    productCard.className = "product-card bg-white dark:bg-dark-surface rounded-lg shadow-lg overflow-hidden flex flex-col cream-border";
+                    
+                    productCard.innerHTML = `
+                        <div class="relative cursor-pointer product-details-trigger" data-id="${product.id}">
+                             <span class="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">${product.condition}</span>
+                             <img src="${product.image_url}" alt="${product.name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/333/fff?text=${product.name.replace(" ", "+")}'">
+                         </div>
+                         <div class="p-5 flex flex-col flex-1">
+                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 cursor-pointer product-details-trigger" data-id="${product.id}">${product.name}</h3>
+                             <p class="text-gray-600 dark:text-dark-secondary text-sm mb-4 flex-1">${product.description}</p>
+                             <div class="flex items-center mb-4">
+                                 ${[...Array(5)].map((_, i) => 
+                                     `<svg class="w-5 h-5 ${i < Math.floor(normalizedRating) ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}" fill="currentColor" viewBox="0 0 20 20">
+                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.83 5.625h5.914c.969 0 1.371 1.24.588 1.81l-4.784 3.475 1.83 5.625c.3.921-.755 1.688-1.54 1.18l-4.784-3.475-4.784 3.475c-.784.508-1.84-.259-1.54-1.18l1.83-5.625-4.784-3.475c-.783-.57-.38-1.81.588-1.81h5.914l1.83-5.625z" />
+                                     </svg>`
+                                 ).join("")}
+                                 <span class="ml-2 text-sm text-gray-500 dark:text-dark-secondary">${displayRating}</span>
+                             </div>
+                             <div class="flex justify-between items-center">
+                                 <span class="text-2xl font-extrabold text-light-mode-black dark:text-dark-mode-cream">$${product.price}</span>
+                                 <button class="add-to-cart-btn px-4 py-2 rounded-full cream-bg transition-all duration-300 transform hover:scale-105" data-id="${product.id}">Add to Cart</button>
+                             </div>
+                         </div>`;
+                    
+                    productListEl.appendChild(productCard);
+                });
+                
+                // Intersection Observer for animations
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("is-visible");
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                
+                document.querySelectorAll(".product-card").forEach(card => {
+                    observer.observe(card);
+                });
+                
+                renderIcons();
+            }
 
-            // Cart Functionality (same as v4)
-            function openCart(){cartModal.classList.remove("hidden"),renderIcons()}function closeCart(){cartModal.classList.add("hidden")}function updateCart(){cartItemsContainer.innerHTML="",0===cart.length?(cartItemsContainer.appendChild(emptyCartMsg),emptyCartMsg.style.display="block"):(emptyCartMsg.style.display="none",cart.forEach(e=>{const t=document.createElement("div");t.className="flex items-center justify-between py-4 border-b dark:border-dark-border",t.innerHTML=`\n                            <div class="flex items-center space-x-4">\n                                <img src="${e.image_url}" alt="${e.name}" class="w-20 h-20 object-cover rounded-lg" onerror="this.src='https://placehold.co/100x100/333/fff?text=${e.name.replace(" ","+")}'">\n                                <div><h4 class="text-lg font-semibold text-gray-900 dark:text-white">${e.name}</h4><span class="text-gray-500 dark:text-dark-secondary">$${e.price}</span></div>\n                             </div>\n                             <div class="flex items-center space-x-3">\n                                 <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${e.id}" data-change="-1">-</button>\n                                 <span class="text-lg text-gray-900 dark:text-white">${e.quantity}</span>\n                                 <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${e.id}" data-change="1">+</button>\n                                 <button class="remove-from-cart text-red-500 hover:text-red-700" data-id="${e.id}"><span data-lucide="trash-2" class="w-5 h-5"></span></button>\n                             </div>`,cartItemsContainer.appendChild(t)}),renderIcons());const e=cart.reduce((e,t)=>e+t.price*t.quantity,0);cartSubtotalEl.textContent=`$${e.toFixed(2)}`;const t=cart.reduce((e,t)=>e+t.quantity,0);cartCountEl.textContent=t}function addToCart(e){const t=allProducts.find(t=>t.id==e);if(!t)return console.error(`Product ${e} not found.`),void showCustomAlert("Error: Product not found.",!1);const n=cart.find(t=>t.id==e);n?n.quantity++:cart.push({...t,quantity:1}),updateCart(),showCustomAlert(`${t.name} added to cart!`,!0)}function changeQuantity(e,t){const n=cart.find(t=>t.id==e);n&&(n.quantity+=t,n.quantity<=0&&(cart=cart.filter(t=>t.id!=e)),updateCart())}function removeFromCart(e){cart=cart.filter(t=>t.id!=e),updateCart()}
+            // Cart Functionality
+            function openCart() {
+                cartModal.classList.remove("hidden");
+                renderIcons();
+            }
 
-            // Checkout (same as v4)
-            async function handleCheckout(){if(!currentUser||!currentUser.loggedIn)return showCustomAlert("Please log in to proceed to checkout.",!1),void 0;if(0===cart.length)return void showCustomAlert("Your cart is empty!",!1);const e=cart.map(e=>({id:e.id,quantity:e.quantity,price:e.price}));try{const t=await fetch("/gadgethut-store/api/create_order.php",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({cart:e})}),n=t.headers.get("content-type");if(!t.ok||!n||!n.includes("application/json")){const e=await t.text();throw new Error(`Server error (${t.status}): ${e.substring(0,100)}...`)}const a=await t.json();if(!a.success)throw new Error(a.error||"Failed to place order.");cart=[],updateCart(),closeCart(),showCustomAlert("Thanks for shopping!",!0)}catch(e){console.error("Checkout failed:",e),showCustomAlert(`Checkout failed: ${e.message}`,!1)}}
+            function closeCart() {
+                cartModal.classList.add("hidden");
+            }
 
-            // Live Search (same as v4)
-            function handleSearch(){const e=searchBar.value.toLowerCase();displayProducts(allProducts.filter(t=>t.name.toLowerCase().includes(e)||t.description.toLowerCase().includes(e)||t.condition.toLowerCase().includes(e)))}
+            function updateCart() {
+                cartItemsContainer.innerHTML = "";
+                
+                if (cart.length === 0) {
+                    cartItemsContainer.appendChild(emptyCartMsg);
+                    emptyCartMsg.style.display = "block";
+                } else {
+                    emptyCartMsg.style.display = "none";
+                    
+                    cart.forEach(item => {
+                        const cartItem = document.createElement("div");
+                        cartItem.className = "flex items-center justify-between py-4 border-b dark:border-dark-border";
+                        cartItem.innerHTML = `
+                            <div class="flex items-center space-x-4">
+                                <img src="${item.image_url}" alt="${item.name}" class="w-20 h-20 object-cover rounded-lg" onerror="this.src='https://placehold.co/100x100/333/fff?text=${item.name.replace(" ", "+")}'">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${item.name}</h4>
+                                    <span class="text-gray-500 dark:text-dark-secondary">$${item.price}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${item.id}" data-change="-1">-</button>
+                                <span class="text-lg text-gray-900 dark:text-white">${item.quantity}</span>
+                                <button class="quantity-change text-lg font-bold text-gray-500 dark:text-dark-secondary" data-id="${item.id}" data-change="1">+</button>
+                                <button class="remove-from-cart text-red-500 hover:text-red-700" data-id="${item.id}">
+                                    <span data-lucide="trash-2" class="w-5 h-5"></span>
+                                </button>
+                            </div>`;
+                        cartItemsContainer.appendChild(cartItem);
+                    });
+                    
+                    renderIcons();
+                }
+                
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+                
+                const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+                cartCountEl.textContent = totalCount;
+            }
 
-            // Help Modal (same as v4)
-            function openHelpModal(e){e.preventDefault(),helpModal.classList.remove("hidden"),setTimeout(()=>helpModal.classList.add("is-open"),10),renderIcons()}function closeHelpModal(){helpModal.classList.remove("is-open"),setTimeout(()=>helpModal.classList.add("hidden"),300)}
+            function addToCart(productId) {
+                const product = allProducts.find(p => p.id == productId);
+                if (!product) {
+                    console.error(`Product ${productId} not found.`);
+                    showCustomAlert("Error: Product not found.", false);
+                    return;
+                }
+                
+                const existingItem = cart.find(item => item.id == productId);
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    cart.push({
+                        ...product,
+                        quantity: 1
+                    });
+                }
+                
+                updateCart();
+                showCustomAlert(`${product.name} added to cart!`, true);
+            }
 
-            // Product Detail Modal (same as v4)
-             async function openProductDetailModal(e){try{const t=await fetch(`/gadgethut-store/api/get_product.php?id=${e}`);if(!t.ok)throw new Error("Failed to fetch product details.");const n=t.headers.get("content-type");if(!n||!n.includes("application/json")){const e=await t.text();throw new Error(`Expected JSON: ${e.substring(0,100)}...`)}const a=await t.json();if(a.error)throw new Error(a.error);detailImg.src=a.image_url,detailImg.alt=a.name,detailName.textContent=a.name,detailDesc.textContent=a.description,detailCondition.textContent=a.condition,detailUsage.textContent=a.usage_duration,detailNotes.textContent=a.condition_notes||"No specific notes.",detailPrice.textContent=a.price,detailAddToCartBtn.dataset.id=a.id,detailConditionBadge.textContent=a.condition,detailConditionBadge.className="text-sm font-medium px-3 py-1 rounded-full self-start mb-4","Pristine"===a.condition?detailConditionBadge.classList.add("bg-green-100","text-green-800"):"Very Good"===a.condition?detailConditionBadge.classList.add("bg-blue-100","text-blue-800"):detailConditionBadge.classList.add("bg-yellow-100","text-yellow-800"),productDetailModal.classList.remove("hidden"),setTimeout(()=>productDetailModal.classList.add("is-open"),10),renderIcons()}catch(e){console.error("Error opening product detail:",e),showCustomAlert(e.message,!1)}}function closeProductDetailModal(){productDetailModal.classList.remove("is-open"),setTimeout(()=>productDetailModal.classList.add("hidden"),300)}
+            function changeQuantity(productId, change) {
+                const item = cart.find(item => item.id == productId);
+                if (item) {
+                    item.quantity += change;
+                    if (item.quantity <= 0) {
+                        cart = cart.filter(item => item.id != productId);
+                    }
+                    updateCart();
+                }
+            }
 
-            // Custom Alert (same as v4)
-            function showCustomAlert(e,t=!0){toastEl.textContent=e,toastEl.classList.remove("hidden","bg-green-500","bg-red-500"),toastEl.classList.add(t?"bg-green-500":"bg-red-500"),toastEl.timeoutId&&clearTimeout(toastEl.timeoutId),toastEl.timeoutId=setTimeout(()=>{toastEl.classList.add("hidden")},4e3)}
+            function removeFromCart(productId) {
+                cart = cart.filter(item => item.id != productId);
+                updateCart();
+            }
 
-            // Event Listeners (same as v4)
-            cartButton.addEventListener("click",openCart),closeCartBtn.addEventListener("click",closeCart),checkoutBtn.addEventListener("click",handleCheckout),searchBar.addEventListener("input",handleSearch),customerServiceLink.addEventListener("click",openHelpModal),footerHelpLink.addEventListener("click",openHelpModal),closeHelpBtn.addEventListener("click",closeHelpModal),helpModal.addEventListener("click",e=>{e.target===helpModal&&closeHelpModal()}),helpContactForm.addEventListener("submit",e=>{e.preventDefault(),closeHelpModal(),showCustomAlert("Support message sent!",!0),helpContactForm.reset()}),closeDetailBtn.addEventListener("click",closeProductDetailModal),productDetailModal.addEventListener("click",e=>{e.target===productDetailModal&&closeProductDetailModal()}),detailAddToCartBtn.addEventListener("click",e=>{addToCart(e.target.dataset.id),closeProductDetailModal()}),logoutButton.addEventListener("click",handleLogout),document.querySelectorAll(".accordion-button").forEach(e=>{e.addEventListener("click",()=>{const t=e.nextElementSibling;e.classList.toggle("open"),t.style.maxHeight?t.style.maxHeight=null:t.style.maxHeight=t.scrollHeight+"px"})}),document.body.addEventListener("click",e=>{e.target.closest(".add-to-cart-btn")&&addToCart(e.target.closest(".add-to-cart-btn").dataset.id),e.target.closest(".quantity-change")&&changeQuantity(e.target.closest(".quantity-change").dataset.id,parseInt(e.target.closest(".quantity-change").dataset.change)),e.target.closest(".remove-from-cart")&&removeFromCart(e.target.closest(".remove-from-cart").dataset.id),e.target.closest(".product-details-trigger")&&openProductDetailModal(e.target.closest(".product-details-trigger").dataset.id)});
+            // Checkout - FIXED PATH
+            async function handleCheckout() {
+                if (!currentUser || !currentUser.loggedIn) {
+                    showCustomAlert("Please log in to proceed to checkout.", false);
+                    return;
+                }
+                
+                if (cart.length === 0) {
+                    showCustomAlert("Your cart is empty!", false);
+                    return;
+                }
+                
+                const orderData = cart.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity,
+                    price: item.price
+                }));
+                
+                try {
+                    const response = await fetch(`${API_BASE}/create_order.php`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ cart: orderData })
+                    });
+                    
+                    const contentType = response.headers.get("content-type");
+                    if (!response.ok || !contentType || !contentType.includes("application/json")) {
+                        const text = await response.text();
+                        throw new Error(`Server error (${response.status}): ${text.substring(0, 100)}...`);
+                    }
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error(data.error || "Failed to place order.");
+                    }
+                    
+                    cart = [];
+                    updateCart();
+                    closeCart();
+                    showCustomAlert("Thanks for shopping!", true);
+                } catch (error) {
+                    console.error("Checkout failed:", error);
+                    showCustomAlert(`Checkout failed: ${error.message}`, false);
+                }
+            }
 
-            // --- Initial Load --- (same as v4)
-             checkLoginStatus(); // Check login status first
-            setTimeout(() => { fetchProducts(); renderIcons(); }, 50);
+            // Live Search
+            function handleSearch() {
+                const searchTerm = searchBar.value.toLowerCase();
+                const filteredProducts = allProducts.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm) ||
+                    product.description.toLowerCase().includes(searchTerm) ||
+                    product.condition.toLowerCase().includes(searchTerm)
+                );
+                displayProducts(filteredProducts);
+            }
 
-        });
-    </script>
-    
-    <!-- Lucide Icons Script -->
-    <script src="https://unpkg.com/lucide@latest"></script> 
-</body>
-</html>
+            // Help Modal
+            function openHelpModal(e) {
+                e.preventDefault();
+                helpModal.classList.remove("hidden");
+                setTimeout(() => helpModal.classList.add("is-open"), 10);
+                renderIcons();
+            }
 
+            function closeHelpModal

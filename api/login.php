@@ -1,95 +1,81 @@
 <?php
-// api/login.php
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-header('Content-Type: application/json');
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
-// *** IMPORTANT: Start session ***
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
 }
 
-require_once __DIR__ . '/../config/db.php';
+// Include database configuration
+require_once '../config/db.php';
 
-// --- Error Handling Setup ---
-register_shutdown_function(function() {
-    $error = error_get_last();
-    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
-        if (!headers_sent()) { http_response_code(500); }
-        // Ensure header again just in case
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => 'Server error during login (shutdown).']); // Added (shutdown) for clarity
-    }
-});
-// --- End Error Handling ---
-
-try {
-    $json_data = file_get_contents('php://input');
-    $request_data = json_decode($json_data, true);
-
-    // Basic Validation
-    if ($request_data === null || empty($request_data['username']) || empty($request_data['password'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Get JSON input
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Username/Email and password are required.']);
-        exit;
+        echo json_encode(["error" => "Invalid JSON data"]);
+        exit();
     }
-
-    $usernameOrEmail = trim($request_data['username']);
-    $password = $request_data['password'];
-
-    $pdo = getDbConnection();
-    if ($pdo === null) {
-        // This will be caught by the catch block below
-        throw new Exception('Database connection failed.');
+    
+    $username = $input['username'] ?? '';
+    $password = $input['password'] ?? '';
+    
+    if (empty($username) || empty($password)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Username and password are required"]);
+        exit();
     }
-
-    // Find user by username OR email
-    $stmt = $pdo->prepare("SELECT id, username, password_hash FROM users WHERE username = ? OR email = ?");
-     if (!$stmt) {
-         throw new PDOException("Failed to prepare user select statement.");
-     }
-    if (!$stmt->execute([$usernameOrEmail, $usernameOrEmail])) {
-         throw new PDOException("Failed to execute user select statement.");
-     }
-
-    // Fetch the user using the CORRECTED constant
-    // ===================================
-    // === THIS LINE WAS FIXED (Line 57) ===
-    // ===================================
-    $user = $stmt->fetch(PDO::FETCH_ASSOC); // Use PDO::FETCH_ASSOC
-
-    // Verify user exists and password is correct
-    if ($user && password_verify($password, $user['password_hash'])) {
-        // Password is correct! Start the session and store user data.
-
-        // Regenerate session ID for security
-        session_regenerate_id(true);
-
-        // Store essential user info in session
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['logged_in'] = true;
-
-        echo json_encode(['success' => true, 'username' => $user['username']]);
-
-    } else {
-        // Invalid credentials
-        http_response_code(401); // Unauthorized
-        echo json_encode(['success' => false, 'error' => 'Invalid username/email or password.']);
+    
+    try {
+        $database = new Database();
+        $db = $database->getConnection();
+        
+        $query = "SELECT id, username, email, password FROM users WHERE username = :username OR email = :email";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':email', $username);
+        $stmt->execute();
+        
+        if ($stmt->rowCount() == 1) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Verify password
+            if (password_verify($password, $row['password'])) {
+                // Start session and set user data
+                session_start();
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['username'] = $row['username'];
+                $_SESSION['email'] = $row['email'];
+                
+                echo json_encode([
+                    "success" => true,
+                    "message" => "Login successful",
+                    "user" => [
+                        "id" => $row['id'],
+                        "username" => $row['username'],
+                        "email" => $row['email']
+                    ]
+                ]);
+            } else {
+                http_response_code(401);
+                echo json_encode(["error" => "Invalid credentials"]);
+            }
+        } else {
+            http_response_code(401);
+            echo json_encode(["error" => "User not found"]);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => "Server error: " . $e->getMessage()]);
     }
-
-} catch (PDOException $e) {
-    http_response_code(500);
-     // Log error: error_log("Login DB Error: " . $e->getMessage());
-     // Send back a more specific error
-    echo json_encode(['success' => false, 'error' => 'Database error during login: ' . $e->getMessage()]);
-} catch (Exception $e) {
-    http_response_code(500);
-     // Log error: error_log("Login Error: " . $e->getMessage());
-     // Send back a more specific error
-    echo json_encode(['success' => false, 'error' => 'Server error during login: ' . $e->getMessage()]);
+} else {
+    http_response_code(405);
+    echo json_encode(["error" => "Method not allowed"]);
 }
-
-exit; // Ensure script stops here
 ?>
-

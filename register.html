@@ -10,15 +10,13 @@
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .cream-bg { background-color: #F5F5DC; color: #121212; font-weight: bold; }
         .cream-bg:hover { background-color: #FFFDD0; }
-        .message { margin-top: 1rem; text-align: center; font-size: 0.875rem; }
-        .success-message { color: #10b981; /* Green-600 */ }
-        .error-message { color: #ef4444; /* Red-500 */ }
+        .error-message { color: #ef4444; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
         <h1 class="text-3xl font-extrabold text-center mb-6 text-gray-800">
-             Create Account
+            Create Account
         </h1>
         <form id="register-form" class="space-y-4">
             <div>
@@ -35,9 +33,9 @@
                 <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                 <input type="password" id="password" name="password" required minlength="6"
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                 <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+                <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
             </div>
-             <div>
+            <div>
                 <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
                 <input type="password" id="confirm_password" name="confirm_password" required
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
@@ -48,80 +46,59 @@
                 </button>
             </div>
         </form>
-        <p id="message" class="message"></p>
+        <p id="error-message" class="error-message text-sm mt-4 text-center"></p>
         <p class="text-sm text-center text-gray-600 mt-4">
             Already have an account? <a href="login.html" class="text-indigo-600 hover:underline">Login here</a>
         </p>
-         <p class="text-sm text-center text-gray-600 mt-2">
+        <p class="text-sm text-center text-gray-600 mt-2">
             <a href="index.html" class="text-indigo-600 hover:underline">Back to Store</a>
         </p>
     </div>
 
     <script>
         const registerForm = document.getElementById('register-form');
-        const messageEl = document.getElementById('message');
-        const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirm_password');
+        const errorMessageEl = document.getElementById('error-message');
 
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            messageEl.textContent = '';
-            messageEl.className = 'message'; // Reset classes
-
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-
-            if (password !== confirmPassword) {
-                messageEl.textContent = 'Passwords do not match.';
-                messageEl.classList.add('error-message');
-                return;
-            }
-             if (password.length < 6) {
-                 messageEl.textContent = 'Password must be at least 6 characters long.';
-                 messageEl.classList.add('error-message');
-                 return;
-             }
-
+            errorMessageEl.textContent = '';
 
             const formData = new FormData(registerForm);
-            // We don't need to send confirm_password to the server
-            formData.delete('confirm_password');
             const data = Object.fromEntries(formData.entries());
 
+            // Check if passwords match
+            if (data.password !== data.confirm_password) {
+                errorMessageEl.textContent = 'Passwords do not match';
+                return;
+            }
+
             try {
-                // Use absolute path
-                const response = await fetch('/gadgethut-store/api/register.php', {
+                // FIXED: Use relative path instead of absolute
+                const response = await fetch('./api/register.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
 
-                 // Check content type before parsing
                 const contentType = response.headers.get("content-type");
-                 if (!response.ok || !contentType || !contentType.includes("application/json")) {
-                     const textResponse = await response.text();
-                     throw new Error(`Server error (${response.status}): ${textResponse.substring(0, 100)}...`);
-                 }
+                if (!response.ok || !contentType || !contentType.includes("application/json")) {
+                    const textResponse = await response.text();
+                    throw new Error(`Server error (${response.status}): ${textResponse.substring(0, 100)}...`);
+                }
 
                 const result = await response.json();
 
                 if (result.success) {
-                    messageEl.textContent = 'Registration successful! You can now log in.';
-                    messageEl.classList.add('success-message');
-                    registerForm.reset(); // Clear the form
-                    // Optionally redirect after a delay
-                    // setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                    // Registration successful, redirect to login
+                    window.location.href = 'login.html?message=Registration successful. Please login.';
                 } else {
-                    messageEl.textContent = result.error || 'Registration failed. Please try again.';
-                    messageEl.classList.add('error-message');
+                    errorMessageEl.textContent = result.error || 'Registration failed. Please try again.';
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                messageEl.textContent = `An error occurred: ${error.message}`;
-                messageEl.classList.add('error-message');
+                errorMessageEl.textContent = `An error occurred: ${error.message}`;
             }
         });
     </script>
 </body>
 </html>
-
