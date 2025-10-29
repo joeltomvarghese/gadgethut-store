@@ -16,17 +16,26 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     
+    if (!$db) {
+        throw new Exception("Database connection failed");
+    }
+    
     $query = "SELECT * FROM products WHERE status = 'active'";
     $stmt = $db->prepare($query);
     $stmt->execute();
     
     $products = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Construct full image URL for AWS
-        $base_url = "http://" . $_SERVER['HTTP_HOST'];
-        $row['image_url'] = !empty($row['image']) ? 
-            $base_url . "/uploads/products/" . $row['image'] : 
-            $base_url . "/uploads/products/default.jpg";
+        // Use the correct column name 'product_condition' instead of 'condition'
+        $row['condition'] = $row['product_condition'];
+        
+        // Check if image exists locally, otherwise use placeholder
+        $base_url = "http://localhost/gadgethut-store";
+        if (!empty($row['image']) && file_exists('../uploads/products/' . $row['image'])) {
+            $row['image_url'] = $base_url . "/uploads/products/" . $row['image'];
+        } else {
+            $row['image_url'] = "https://placehold.co/600x400/333/fff?text=" . urlencode($row['name']);
+        }
         
         $products[] = $row;
     }

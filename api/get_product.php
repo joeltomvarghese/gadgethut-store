@@ -32,11 +32,9 @@ try {
     if ($stmt->rowCount() == 1) {
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // Construct full image URL for AWS
-        $base_url = "http://" . $_SERVER['HTTP_HOST'];
-        $product['image_url'] = !empty($product['image']) ? 
-            $base_url . "/uploads/products/" . $product['image'] : 
-            $base_url . "/uploads/products/default.jpg";
+        // Use the correct column name 'product_condition' instead of 'condition'
+        $product['condition'] = $product['product_condition']; // Map to expected frontend field
+        $product['image_url'] = "https://placehold.co/600x400/333/fff?text=" . urlencode($product['name']);
         
         echo json_encode($product);
     } else {
