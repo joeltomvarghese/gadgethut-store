@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
+        .form-container { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        input { width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; }
+        button { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 3px; cursor: pointer; }
+        #result { margin-top: 20px; padding: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Register Test</h1>
+    
+    <div class="form-container">
+        <h2>Create Account</h2>
+        <form id="registerForm">
+            <input type="text" name="username" placeholder="Username" value="alienmailflow" required>
+            <input type="email" name="email" placeholder="Email" value="alienmailflow@gmail.com" required>
+            <input type="password" name="password" placeholder="Password" value="password123" required>
+            <button type="submit">Create Account</button>
+        </form>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = {
+                username: formData.get('username'),
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+
+            console.log('Sending data:', data);
+
+            try {
+                const response = await fetch('register.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response result:', result);
+                
+                document.getElementById('result').innerHTML = 
+                    '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                    
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById('result').innerHTML = 
+                    '<div style="color: red;">Network Error: ' + error.message + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>

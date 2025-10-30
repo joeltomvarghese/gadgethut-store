@@ -1,56 +1,77 @@
 <?php
-session_start();
-header('Content-Type: application/json');
-require_once '../config/database.php';
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Headers: Content-Type");
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'error' => 'Invalid request method']);
-    exit;
-}
+// Log the request
+error_log("Register endpoint hit");
 
-$username = trim($_POST['username'] ?? '');
-$email = trim($_POST['email'] ?? '');
-$password = $_POST['password'] ?? '';
-
-// Debug: Log the received data
-error_log("Registration attempt: username=$username, email=$email");
-
-if (empty($username) || empty($email) || empty($password)) {
-    echo json_encode(['success' => false, 'error' => 'All fields are required']);
-    exit;
-}
-
-if (strlen($password) < 6) {
-    echo json_encode(['success' => false, 'error' => 'Password must be at least 6 characters']);
-    exit;
-}
-
-try {
-    $database = new Database();
-    $db = $database->getConnection();
+// Check if it's a POST request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Get JSON input
+    $json_input = file_get_contents("php://input");
+    error_log("Raw input: " . $json_input);
     
-    // Check if username or email already exists
-    $checkQuery = "SELECT id FROM users WHERE username = ? OR email = ?";
-    $checkStmt = $db->prepare($checkQuery);
-    $checkStmt->execute([$username, $email]);
+    $input = json_decode($json_input, true);
     
-    if ($checkStmt->fetch()) {
-        echo json_encode(['success' => false, 'error' => 'Username or email already exists']);
+    // Check if JSON decoding worked
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log("JSON decode error: " . json_last_error_msg());
+        echo json_encode(["success" => false, "message" => "Invalid JSON data"]);
         exit;
     }
     
-    // Create new user
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    $insertQuery = "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)";
-    $insertStmt = $db->prepare($insertQuery);
+    $username = $input['username'] ?? '';
+    $email = $input['email'] ?? '';
+    $password = $input['password'] ?? '';
     
-    if ($insertStmt->execute([$username, $email, $hashedPassword])) {
-        echo json_encode(['success' => true, 'message' => 'Registration successful!']);
-    } else {
-        echo json_encode(['success' => false, 'error' => 'Failed to create account']);
+    error_log("Processing registration for: " . $username);
+    
+    if (empty($username) || empty($email) || empty($password)) {
+        echo json_encode(["success" => false, "message" => "All fields are required"]);
+        exit;
     }
-} catch (PDOException $e) {
-    error_log("Registration error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
+    
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(["success" => false, "message" => "Invalid email format"]);
+        exit;
+    }
+    
+    try {
+        require_once 'database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+        
+        // Check if user already exists
+        $stmt = $db->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+        $stmt->execute([$username, $email]);
+        
+        if ($stmt->fetch()) {
+            echo json_encode(["success" => false, "message" => "Username or email already exists"]);
+            exit;
+        }
+        
+        // Create new user
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->execute([$username, $email, $hashed_password]);
+        
+        error_log("User registered successfully: " . $username);
+        echo json_encode([
+            "success" => true, 
+            "message" => "User registered successfully"
+        ]);
+        
+    } catch (Exception $e) {
+        error_log("Registration error: " . $e->getMessage());
+        echo json_encode([
+            "success" => false, 
+            "message" => "Registration failed: " . $e->getMessage()
+        ]);
+    }
+} else {
+    error_log("Invalid request method: " . $_SERVER['REQUEST_METHOD']);
+    echo json_encode(["success" => false, "message" => "Only POST method allowed"]);
 }
 ?>
